@@ -139,9 +139,17 @@ void BioDisplay::incomingFile()
         QList<QRect> faces;
         m_faceTracker->findFaces(incoming, faces);
         if (faces.size()>0) {
-            QPixmap pic = QPixmap::fromImage(incoming.copy(faces[0]));
+            QPixmap pic = QPixmap::fromImage( cropAroundFace(incoming,faces[0]) );
             m_currentPortrait->setPixmap( pic.scaled(m_faceW,m_faceH) );
             searchAnimation();
         }
     }
+}
+
+QImage BioDisplay::cropAroundFace(const QImage &orig, const QRect &face)
+{
+    int w = face.width() * 4 / 3, h = w * m_faceH / m_faceW;
+    int dw = w - face.width(), dh = h - face.height();
+
+    return orig.copy( face.x()-dw/2, face.y()-dh/2, w, h );
 }

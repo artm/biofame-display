@@ -33,6 +33,8 @@ protected:
     void setCaption(const QString& text);
     void searchAnimation();
 
+    QImage cropAroundFace(const QImage& orig, const QRect& face);
+
     QGraphicsView * m_view;
     QGraphicsScene * m_scene;
     QGraphicsPixmapItem * m_currentPortrait;
