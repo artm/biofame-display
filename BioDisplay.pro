@@ -14,3 +14,7 @@ SOURCES += main.cpp\
         BioDisplay.cpp
 
 HEADERS  += BioDisplay.h
+
+OTHER_FILES += \
+    Readme.md
+

@@ -18,16 +18,18 @@ BioDisplay::BioDisplay(QWidget *parent)
 
     showFullScreen();
     m_scene->setSceneRect(0,0,width(),height());
-    qDebug() << m_scene->sceneRect();
     m_view->fitInView( m_scene->sceneRect() );
 
     int w = width(), h = height();
     int faceH = h/2, faceW = faceH*2/3;
     int vspace = h/2 - faceH/2;
+    int hgap = (w - 2*faceW)/3;
 
-    // portrait
+    // big portraits
     QGraphicsRectItem * mainPortrait = m_scene->addRect( -faceW/2,-faceH/2,faceW,faceH,QPen(QColor(50,50,50)) );
-    mainPortrait->setPos(w/2,h/2);
+    mainPortrait->setPos( hgap+faceW/2 ,h/2);
+    QGraphicsRectItem * matchPortrait = m_scene->addRect( -faceW/2,-faceH/2,faceW,faceH,QPen(QColor(50,50,50)) );
+    matchPortrait->setPos(w - (hgap+faceW/2),h/2);
 
     // text
     QFont fnt;
@@ -35,7 +37,7 @@ BioDisplay::BioDisplay(QWidget *parent)
     QGraphicsTextItem * text = m_scene->addText( "", fnt );
     text->setDefaultTextColor(QColor(100,100,100));
     text->setTextWidth(w*2/3);
-    text->setHtml(QString("<center>%1</center>").arg("Description and stuff and more-long-text"));
+    text->setHtml(QString("<center>%1</center>").arg("Fifteen Minutes of Biometric Fame"));
     QSizeF tsz = text->boundingRect().size();
     // vertically center under the portrait...
     text->setPos(w/2 - tsz.width()/2, h - vspace/2 - tsz.height()/2);
