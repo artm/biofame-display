@@ -3,12 +3,25 @@
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QGraphicsRectItem>
+#include <QGraphicsPixmapItem>
+#include <QDir>
 #include <QDebug>
+#include <QApplication>
+#include <QTimer>
+#include <QFileSystemWatcher>
+
+template<class X>
+X random(QList<X> lst)
+{
+    return lst[ random() % lst.size() ];
+}
 
 BioDisplay::BioDisplay(QWidget *parent)
     : QMainWindow(parent)
 {
+    setupTimers();
     createUI();
+    loadDB();
 }
 
 BioDisplay::~BioDisplay()
@@ -31,15 +44,19 @@ void BioDisplay::createUI()
     m_view->fitInView( m_scene->sceneRect() );
 
     int w = width(), h = height();
-    int faceH = h/2, faceW = faceH*2/3;
-    int vspace = h/2 - faceH/2;
-    int hgap = (w - 2*faceW)/3;
+    m_faceH = h/2, m_faceW = m_faceH*2/3;
+    m_vertSpace = h/2 - m_faceH/2;
+    int hgap = (w - 2*m_faceW)/3;
 
     // big portraits
-    m_mainPortrait = m_scene->addRect( -faceW/2,-faceH/2,faceW,faceH,QPen(QColor(50,50,50)) );
-    m_mainPortrait->setPos( hgap+faceW/2 ,h/2);
-    m_matchPortrait = m_scene->addRect( -faceW/2,-faceH/2,faceW,faceH,QPen(QColor(50,50,50)) );
-    m_matchPortrait->setPos(w - (hgap+faceW/2),h/2);
+    QGraphicsRectItem * rectItem = m_scene->addRect( -m_faceW/2,-m_faceH/2,m_faceW,m_faceH,QPen(QColor(50,50,50)) );
+    rectItem->setPos( hgap+m_faceW/2 ,h/2);
+    m_currentPortrait = new QGraphicsPixmapItem(rectItem);
+    m_currentPortrait->setOffset( -m_faceW/2, -m_faceH/2 );
+    rectItem =  m_scene->addRect( -m_faceW/2,-m_faceH/2,m_faceW,m_faceH,QPen(QColor(50,50,50)) );
+    rectItem->setPos(w - (hgap+m_faceW/2),h/2);
+    m_matchPortrait = new QGraphicsPixmapItem(rectItem);
+    m_matchPortrait->setOffset( -m_faceW/2, -m_faceH/2 );
 
     // text
     QFont fnt;
@@ -47,20 +64,71 @@ void BioDisplay::createUI()
     m_caption = m_scene->addText( "", fnt );
     m_caption->setDefaultTextColor(QColor(100,100,100));
     m_caption->setTextWidth(w*2/3);
-    m_caption->setHtml(QString("<center>%1</center>").arg("Fifteen Minutes of Biometric Fame"));
-    QSizeF tsz = m_caption->boundingRect().size();
-    // vertically center under the portrait...
-    m_caption->setPos(w/2 - tsz.width()/2, h - vspace/2 - tsz.height()/2);
+    setCaption("Fifteen Minutes of Biometric Fame");
 
     // small portraits
-    int smallFaceH = vspace*3/4, smallFaceW = smallFaceH*2/3;
-    int smallFaceMargin = (vspace-smallFaceH)/2;
+    int smallFaceH = m_vertSpace*3/4, smallFaceW = smallFaceH*2/3;
+    int smallFaceMargin = (m_vertSpace-smallFaceH)/2;
     int nSmallFaces = (w - smallFaceMargin) / (smallFaceW+smallFaceMargin);
     int offs = smallFaceMargin+smallFaceW/2;
     for(int i = 0; i<nSmallFaces; i++) {
         QGraphicsRectItem * smallPortrait = m_scene->addRect( -smallFaceW/2, -smallFaceH/2, smallFaceW, smallFaceH,
                                                           QPen(QColor(50,50,50)) );
-        smallPortrait->setPos(offs+i*(smallFaceMargin+smallFaceW),vspace/2);
-        m_smallPortraits << smallPortrait;
+        smallPortrait->setPos(offs+i*(smallFaceMargin+smallFaceW),m_vertSpace/2);
+        m_smallPortraits << new QGraphicsPixmapItem(smallPortrait);
     }
+}
+
+void BioDisplay::loadDB()
+{
+    QDir dbdir(QDir::homePath() +  "/Pictures/Faces/orig");
+    Q_ASSERT(dbdir.exists());
+    setCaption("Loading database...");
+    QApplication::processEvents();
+    foreach(QString path, dbdir.entryList(QStringList() << "*.jpg",QDir::Files)) {
+        m_pics << dbdir.filePath(path);
+    }
+    setCaption("Database loaded");
+
+    QString incoming = QDir::homePath() + "/Pictures/Faces/incoming";
+    QDir inDir(incoming);
+    foreach(QString p, inDir.entryList(QDir::Files)) {
+        QFile(inDir.filePath(p)).remove();
+    }
+
+    m_watcher = new QFileSystemWatcher(this);
+    m_watcher->addPath(incoming);
+    Q_ASSERT( connect(m_watcher, SIGNAL(directoryChanged(QString)), SLOT(incomingFile())) );
+}
+
+void BioDisplay::setCaption(const QString &text)
+{
+    m_caption->setHtml(QString("<center>%1</center>").arg(text));
+    QSizeF tsz = m_caption->boundingRect().size();
+    // vertically center under the portrait...
+    m_caption->setPos(m_scene->width()/2 - tsz.width()/2, m_scene->height() - m_vertSpace/2 - tsz.height()/2);
+}
+
+void BioDisplay::searchAnimation()
+{
+    setCaption("searching...");
+    m_rndPicTimer.start();
+}
+
+void BioDisplay::setupTimers()
+{
+    m_rndPicTimer.setInterval(50);
+    Q_ASSERT( connect(&m_rndPicTimer, SIGNAL(timeout()), this, SLOT(showRndPic())) );
+}
+
+void BioDisplay::showRndPic()
+{
+    QString path = random( m_pics );
+    QPixmap pic( path );
+    m_matchPortrait->setPixmap(pic.scaled(m_faceW,m_faceH));
+}
+
+void BioDisplay::incomingFile()
+{
+    searchAnimation();
 }

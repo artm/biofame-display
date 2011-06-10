@@ -3,11 +3,14 @@
 
 #include <QMainWindow>
 #include <QList>
+#include <QStringList>
+#include <QTimer>
 
 class QGraphicsView;
 class QGraphicsScene;
-class QGraphicsRectItem;
 class QGraphicsTextItem;
+class QGraphicsPixmapItem;
+class QFileSystemWatcher;
 
 class BioDisplay : public QMainWindow
 {
@@ -17,15 +20,27 @@ public:
     BioDisplay(QWidget *parent = 0);
     ~BioDisplay();
 
+public slots:
+    void showRndPic();
+    void incomingFile();
+
 protected:
     void createUI();
+    void setupTimers();
+    void loadDB();
+    void setCaption(const QString& text);
+    void searchAnimation();
 
     QGraphicsView * m_view;
     QGraphicsScene * m_scene;
-    QGraphicsRectItem * m_mainPortrait;
-    QGraphicsRectItem * m_matchPortrait;
+    QGraphicsPixmapItem * m_currentPortrait;
+    QGraphicsPixmapItem * m_matchPortrait;
     QGraphicsTextItem * m_caption;
-    QList<QGraphicsRectItem*> m_smallPortraits;
+    QList<QGraphicsPixmapItem*> m_smallPortraits;
+    int m_faceW, m_faceH, m_vertSpace;
+    QStringList m_pics;
+    QTimer m_rndPicTimer;
+    QFileSystemWatcher * m_watcher;
 };
 
 #endif // BIODISPLAY_H

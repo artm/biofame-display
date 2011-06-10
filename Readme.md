@@ -4,6 +4,9 @@
     [ ] prepare face template database in memory
     [ ] prepare a list of image files to go with the face template database
 
+[ ] database self update:
+    [ ] maintain cropped faces directory...
+
 [ ] watch incoming directory for new face
 [ ] when got - place it in the middle of the screen
 [ ] start matching thread, in the main thread - show random images from the database scroll in the smalls
@@ -17,4 +20,9 @@
 [ ] delay...
 [ ] current image slides into the line after the matched
 [ ] current image is added to the database under the modified slot name
+
+## Short term...
+
+[ ] upon start up mark images in incoming directory as seen already
+[ ] after which start waiting on new ones
 
