@@ -1,14 +1,14 @@
 #ifndef FACETRACKER_H
 #define FACETRACKER_H
 
-#include <QObject>
+#include <QThread>
 #include <QImage>
 
 #include <NCore.h>
 #include <NLExtractor.h>
 #include <NLicensing.h>
 
-class FaceTracker : public QObject {
+class FaceTracker : public QThread {
     Q_OBJECT
 public:
     explicit FaceTracker(QObject * parent);
@@ -25,6 +25,7 @@ public slots:
 
 private:
     HNLExtractor m_extractor;
+
 
     static QString errorString(NResult result);
     static bool isOk(NResult result,

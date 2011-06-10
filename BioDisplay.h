@@ -11,8 +11,7 @@ class QGraphicsView;
 class QGraphicsScene;
 class QGraphicsTextItem;
 class QGraphicsPixmapItem;
-class QFileSystemWatcher;
-class FaceTracker;
+class BiometricThread;
 
 class BioDisplay : public QMainWindow
 {
@@ -24,16 +23,15 @@ public:
 
 public slots:
     void showRndPic();
-    void incomingFile();
+    void incomingFace(QImage face);
 
 protected:
-    void createUI();
+    void setupUI();
     void setupTimers();
+    void setupBiometricThread();
     void loadDB();
     void setCaption(const QString& text);
     void searchAnimation();
-
-    QImage cropAroundFace(const QImage& orig, const QRect& face);
 
     QGraphicsView * m_view;
     QGraphicsScene * m_scene;
@@ -44,10 +42,7 @@ protected:
     int m_faceW, m_faceH, m_vertSpace;
     QStringList m_pics;
     QTimer m_rndPicTimer;
-    QFileSystemWatcher * m_watcher;
-    QDir m_incomingDir;
-
-    FaceTracker * m_faceTracker;
+    BiometricThread * m_bioThread;
 };
 
 #endif // BIODISPLAY_H

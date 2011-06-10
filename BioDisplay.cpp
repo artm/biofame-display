@@ -1,5 +1,5 @@
 #include "BioDisplay.h"
-#include "FaceTracker.h"
+#include "BiometricThread.h"
 
 #include <QGraphicsView>
 #include <QGraphicsScene>
@@ -19,11 +19,12 @@ X random(QList<X> lst)
 
 BioDisplay::BioDisplay(QWidget *parent)
     : QMainWindow(parent)
-    , m_faceTracker(new FaceTracker(this))
 {
     setupTimers();
-    createUI();
+    setupUI();
     loadDB();
+
+    setupBiometricThread();
 }
 
 BioDisplay::~BioDisplay()
@@ -31,7 +32,7 @@ BioDisplay::~BioDisplay()
 
 }
 
-void BioDisplay::createUI()
+void BioDisplay::setupUI()
 {
     m_view = new QGraphicsView(this);
     setCentralWidget(m_view);
@@ -92,15 +93,6 @@ void BioDisplay::loadDB()
     }
     setCaption("Database loaded");
 
-    QString incomingPath = QDir::homePath() + "/Pictures/Faces/incoming";
-    m_incomingDir = QDir(incomingPath);
-    foreach(QString p, m_incomingDir.entryList(QDir::Files)) {
-        QFile(m_incomingDir.filePath(p)).remove();
-    }
-
-    m_watcher = new QFileSystemWatcher(this);
-    m_watcher->addPath(incomingPath);
-    Q_ASSERT( connect(m_watcher, SIGNAL(directoryChanged(QString)), SLOT(incomingFile())) );
 }
 
 void BioDisplay::setCaption(const QString &text)
@@ -130,26 +122,18 @@ void BioDisplay::showRndPic()
     m_matchPortrait->setPixmap(pic.scaled(m_faceW,m_faceH));
 }
 
-void BioDisplay::incomingFile()
+void BioDisplay::incomingFace(QImage face)
 {
-    // maybe load
-    QStringList allJpegs = m_incomingDir.entryList(QStringList()<<"*.jpg",QDir::Files,QDir::Time|QDir::Reversed);
-    if (allJpegs.size()>0) {
-        QImage incoming(m_incomingDir.filePath(allJpegs[0]));
-        QList<QRect> faces;
-        m_faceTracker->findFaces(incoming, faces);
-        if (faces.size()>0) {
-            QPixmap pic = QPixmap::fromImage( cropAroundFace(incoming,faces[0]) );
-            m_currentPortrait->setPixmap( pic.scaled(m_faceW,m_faceH) );
-            searchAnimation();
-        }
-    }
+    QPixmap pic = QPixmap::fromImage( face );
+    m_currentPortrait->setPixmap( pic.scaled(m_faceW,m_faceH) );
+    searchAnimation();
 }
 
-QImage BioDisplay::cropAroundFace(const QImage &orig, const QRect &face)
+void BioDisplay::setupBiometricThread()
 {
-    int w = face.width() * 4 / 3, h = w * m_faceH / m_faceW;
-    int dw = w - face.width(), dh = h - face.height();
+    m_bioThread = new BiometricThread();
 
-    return orig.copy( face.x()-dw/2, face.y()-dh/2, w, h );
+    Q_ASSERT( connect( m_bioThread, SIGNAL(incomingFace(QImage)), SLOT(incomingFace(QImage)) ) );
+
+    m_bioThread->run();
 }

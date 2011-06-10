@@ -31,7 +31,7 @@ QImage toGrayScale(const QImage& img)
 }
 
 FaceTracker::FaceTracker(QObject * parent)
-    : QObject(parent)
+    : QThread(parent)
     , m_extractor(0)
 {
     NBool available;
