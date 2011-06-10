@@ -1,5 +1,5 @@
-#ifndef FACETRACKER_H
-#define FACETRACKER_H
+#ifndef VERILOOK_H
+#define VERILOOK_H
 
 #include <QThread>
 #include <QImage>
@@ -8,11 +8,11 @@
 #include <NLExtractor.h>
 #include <NLicensing.h>
 
-class FaceTracker : public QThread {
+class Verilook : public QThread {
     Q_OBJECT
 public:
-    explicit FaceTracker(QObject * parent);
-    virtual ~FaceTracker();
+    explicit Verilook(QObject * parent);
+    virtual ~Verilook();
     void findFaces(const QImage& frame, QList<QRect>& faces);
     bool usesVerilook() const { return m_extractor != 0; }
 
@@ -34,4 +34,4 @@ private:
 };
 
 
-#endif // FACETRACKER_H
+#endif // VERILOOK_H

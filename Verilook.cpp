@@ -1,4 +1,4 @@
-#include "FaceTracker.h"
+#include "Verilook.h"
 
 #include <QtDebug>
 #include <QImage>
@@ -30,7 +30,7 @@ QImage toGrayScale(const QImage& img)
     return gray;
 }
 
-FaceTracker::FaceTracker(QObject * parent)
+Verilook::Verilook(QObject * parent)
     : QThread(parent)
     , m_extractor(0)
 {
@@ -47,7 +47,7 @@ FaceTracker::FaceTracker(QObject * parent)
         }
 }
 
-FaceTracker::~FaceTracker() {
+Verilook::~Verilook() {
     if (m_extractor) {
         // clean up verilook stuff
         NleFree(m_extractor);
@@ -58,7 +58,7 @@ FaceTracker::~FaceTracker() {
     }
 }
 
-QString FaceTracker::errorString(NResult result)
+QString Verilook::errorString(NResult result)
 {
     NInt length;
     NChar* message;
@@ -70,7 +70,7 @@ QString FaceTracker::errorString(NResult result)
     return qmessage;
 }
 
-bool FaceTracker::isOk(NResult result,
+bool Verilook::isOk(NResult result,
                  QString errorSuffix,
                  QString successMessage) {
     if (NFailed(result)) {
@@ -93,7 +93,7 @@ bool larger(const QRect& a, const QRect& b)
     return a.width()*a.height() > b.width()*b.height();
 }
 
-void FaceTracker::findFaces(const QImage& frame, QList<QRect>& faces)
+void Verilook::findFaces(const QImage& frame, QList<QRect>& faces)
 {
     if (m_extractor) {
         HNImage img;
@@ -124,28 +124,28 @@ void FaceTracker::findFaces(const QImage& frame, QList<QRect>& faces)
     qSort(faces.begin(), faces.end(), larger);
 }
 
-void FaceTracker::setMinIOD(int value)
+void Verilook::setMinIOD(int value)
 {
     if (!m_extractor) return;
     NInt v = (NInt)value;
     NleSetParameter( m_extractor, NLEP_MIN_IOD, (const void *)&v );
 }
 
-void FaceTracker::setMaxIOD(int value)
+void Verilook::setMaxIOD(int value)
 {
     if (!m_extractor) return;
     NInt v = (NInt)value;
     NleSetParameter( m_extractor, NLEP_MAX_IOD, (const void *)&v );
 }
 
-void FaceTracker::setConfidenceThreshold(double value)
+void Verilook::setConfidenceThreshold(double value)
 {
     if (!m_extractor) return;
     NDouble v = (NDouble)value;
     NleSetParameter( m_extractor, NLEP_FACE_CONFIDENCE_THRESHOLD, (const void *)&v );
 }
 
-void FaceTracker::setQualityThreshold(int value)
+void Verilook::setQualityThreshold(int value)
 {
     if (!m_extractor) return;
     NByte v = (NByte)value;

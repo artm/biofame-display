@@ -1,5 +1,5 @@
 #include "BiometricThread.h"
-#include "FaceTracker.h"
+#include "Verilook.h"
 #include "CommonTypes.h"
 
 #include <QFileSystemWatcher>
@@ -8,7 +8,7 @@
 
 BiometricThread::BiometricThread(QObject *parent)
     : QThread(parent)
-    , m_faceTracker(new FaceTracker(this))
+    , m_faceTracker(new Verilook(this))
 {
     QString incomingPath = QDir::homePath() + "/Pictures/Faces/incoming";
     m_incomingDir = QDir(incomingPath);

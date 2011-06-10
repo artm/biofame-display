@@ -6,7 +6,7 @@
 #include <QImage>
 
 class QFileSystemWatcher;
-class FaceTracker;
+class Verilook;
 
 class BiometricThread : public QThread
 {
@@ -25,7 +25,7 @@ public slots:
 protected:
     QImage cropAroundFace(const QImage& orig, const QRect& face);
 
-    FaceTracker * m_faceTracker;
+    Verilook * m_faceTracker;
     QFileSystemWatcher * m_watcher;
     QDir m_incomingDir;
 };
