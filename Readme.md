@@ -23,6 +23,11 @@
 
 ## Short term...
 
-[ ] upon start up mark images in incoming directory as seen already
-[ ] after which start waiting on new ones
+[ ] start robust verilook wrapper: an object that can:
+    1. detect faces - thread agnostic but eventually in biometric thread to serialize access to verilook
+    2. make a match template
+    3. run match loop and report best match with a signal
+
+[ ] before starting the animation have to pass the image to the biometric thread and let it crop it. it's the cropped image that will get saved.
+[ ] If match found - move the file into the corresponding slot and save its matching template.
 

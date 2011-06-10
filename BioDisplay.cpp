@@ -1,4 +1,5 @@
 #include "BioDisplay.h"
+#include "FaceTracker.h"
 
 #include <QGraphicsView>
 #include <QGraphicsScene>
@@ -18,6 +19,7 @@ X random(QList<X> lst)
 
 BioDisplay::BioDisplay(QWidget *parent)
     : QMainWindow(parent)
+    , m_faceTracker(new FaceTracker(this))
 {
     setupTimers();
     createUI();
@@ -90,14 +92,14 @@ void BioDisplay::loadDB()
     }
     setCaption("Database loaded");
 
-    QString incoming = QDir::homePath() + "/Pictures/Faces/incoming";
-    QDir inDir(incoming);
-    foreach(QString p, inDir.entryList(QDir::Files)) {
-        QFile(inDir.filePath(p)).remove();
+    QString incomingPath = QDir::homePath() + "/Pictures/Faces/incoming";
+    m_incomingDir = QDir(incomingPath);
+    foreach(QString p, m_incomingDir.entryList(QDir::Files)) {
+        QFile(m_incomingDir.filePath(p)).remove();
     }
 
     m_watcher = new QFileSystemWatcher(this);
-    m_watcher->addPath(incoming);
+    m_watcher->addPath(incomingPath);
     Q_ASSERT( connect(m_watcher, SIGNAL(directoryChanged(QString)), SLOT(incomingFile())) );
 }
 
@@ -130,5 +132,16 @@ void BioDisplay::showRndPic()
 
 void BioDisplay::incomingFile()
 {
-    searchAnimation();
+    // maybe load
+    QStringList allJpegs = m_incomingDir.entryList(QStringList()<<"*.jpg",QDir::Files,QDir::Time|QDir::Reversed);
+    if (allJpegs.size()>0) {
+        QImage incoming(m_incomingDir.filePath(allJpegs[0]));
+        QList<QRect> faces;
+        m_faceTracker->findFaces(incoming, faces);
+        if (faces.size()>0) {
+            QPixmap pic = QPixmap::fromImage(incoming.copy(faces[0]));
+            m_currentPortrait->setPixmap( pic.scaled(m_faceW,m_faceH) );
+            searchAnimation();
+        }
+    }
 }

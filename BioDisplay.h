@@ -5,12 +5,14 @@
 #include <QList>
 #include <QStringList>
 #include <QTimer>
+#include <QDir>
 
 class QGraphicsView;
 class QGraphicsScene;
 class QGraphicsTextItem;
 class QGraphicsPixmapItem;
 class QFileSystemWatcher;
+class FaceTracker;
 
 class BioDisplay : public QMainWindow
 {
@@ -41,6 +43,9 @@ protected:
     QStringList m_pics;
     QTimer m_rndPicTimer;
     QFileSystemWatcher * m_watcher;
+    QDir m_incomingDir;
+
+    FaceTracker * m_faceTracker;
 };
 
 #endif // BIODISPLAY_H
