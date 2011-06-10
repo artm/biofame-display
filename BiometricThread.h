@@ -12,20 +12,24 @@ class BiometricThread : public QThread
 {
     Q_OBJECT
 public:
-    explicit BiometricThread(QObject *parent = 0);
-
-    virtual void run();
+    explicit BiometricThread(QObject *parent = 0);    
 
 signals:
     void incomingFace(QImage croppedFace);
+    void loadDbStarted();
+    void loadDbFinished();
+    void newImagePath(QString path);
 
 public slots:
     void incomingFile();
 
 protected:
-    QImage cropAroundFace(const QImage& orig, const QRect& face);
+    virtual void run();
 
-    Verilook * m_faceTracker;
+    QImage cropAroundFace(const QImage& orig, const QRect& face);
+    void loadDb();
+
+    Verilook * m_verilook;
     QFileSystemWatcher * m_watcher;
     QDir m_incomingDir;
 };

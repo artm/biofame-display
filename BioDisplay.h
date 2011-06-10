@@ -24,13 +24,15 @@ public:
 public slots:
     void showRndPic();
     void incomingFace(QImage face);
+    void addImagePath(QString path);
+    void setCaption(const QString& text);
+    void setCaptionLoading() { setCaption("Loading database..."); }
+    void setCaptionLoaded() { setCaption("Database loaded"); }
 
 protected:
     void setupUI();
     void setupTimers();
     void setupBiometricThread();
-    void loadDB();
-    void setCaption(const QString& text);
     void searchAnimation();
 
     QGraphicsView * m_view;

@@ -2,6 +2,7 @@
 
 #include <QtDebug>
 #include <QImage>
+#include <QFileInfo>
 
 const char * s_defaultPort = "5000";
 const char * s_defaultServer = "/local";
@@ -32,30 +33,28 @@ QImage toGrayScale(const QImage& img)
 
 Verilook::Verilook(QObject * parent)
     : QThread(parent)
-    , m_extractor(0)
+    , m_extractor(0), m_matcher(0)
 {
     NBool available;
 
-    if ( ! isOk( NLicenseObtainA( s_defaultServer, s_defaultPort, s_licenseList, &available),
-                 "NLicenseObtain failed")
-            || ! available
-            || ! isOk(NleCreate(&m_extractor),
-                   "No verilook extractor created",
-                   "Verilook extractor created") ) {
-            m_extractor = 0;
-            qDebug() << "WTF";
-        }
+    if ( isOk( NLicenseObtainA( s_defaultServer, s_defaultPort, s_licenseList, &available),
+               "NLicenseObtain failed")
+         && available) {
+        Q_ASSERT( isOk(NleCreate(&m_extractor), "No verilook extractor created", "Verilook extractor created") );
+        Q_ASSERT( isOk(NMCreate(&m_matcher), "No verilook matcher created", "Verilook matcher created"));
+    }
 }
 
 Verilook::~Verilook() {
     if (m_extractor) {
-        // clean up verilook stuff
         NleFree(m_extractor);
         m_extractor = 0;
-        isOk( NLicenseRelease(s_licenseList),
-                  "NLicenseRelease failed",
-                  "License successfully released" );
     }
+    if (m_matcher) {
+        NMFree(m_matcher);
+        m_matcher = 0;
+    }
+    isOk( NLicenseRelease(s_licenseList), "NLicenseRelease failed", "License successfully released" );
 }
 
 QString Verilook::errorString(NResult result)
@@ -153,3 +152,88 @@ void Verilook::setQualityThreshold(int value)
 }
 
 
+void Verilook::addDbFace(const QString& imgPath)
+{
+    QFileInfo fi(imgPath);
+    Q_ASSERT( fi.exists() );
+    QString tplPath = fi.path() + "/" + fi.baseName() + ".tpl";
+    if (QFileInfo(tplPath).exists()) {
+        // load from file
+        QFile tplFile(tplPath);
+        tplFile.open(QFile::ReadOnly);
+        m_templates.push_back(
+                    FaceTemplatePtr(
+                        new FaceTemplate(imgPath, tplPath,
+                                         tplFile.readAll())));
+    } else {
+        HNImage image, greyscale;
+        NleDetectionDetails details;
+        HNLTemplate tpl;
+        NleExtractionStatus extrStatus;
+
+        if (isOk(NImageCreateFromFile(imgPath.toLocal8Bit(), NULL, &image))) {
+
+            if (isOk(NImageCreateFromImage(npfGrayscale, 0, image, &greyscale))) {
+
+                NResult result;
+
+                result = NleExtract(
+                            m_extractor,
+                            greyscale,
+                            &details,
+                            &extrStatus,
+                            &tpl);
+
+                if (isOk(result) && (extrStatus == nleesTemplateCreated)) {
+                    // compress
+                    HNLTemplate compTemplate;
+
+                    if (isOk(NleCompressEx(tpl, nletsSmall, &compTemplate))) {
+
+                        // free uncompressed template
+                        NLTemplateFree(tpl);
+
+                        // get the size of the template
+                        NSizeType maxSize;
+                        if (isOk(NLTemplateGetSize(compTemplate, 0, &maxSize))) {
+
+                            // transform to byte array
+                            NSizeType size;
+                            QByteArray bytes(maxSize, 0);
+
+                            if (isOk(NLTemplateSaveToMemory(compTemplate,
+                                                            bytes.data(), maxSize,
+                                                            0, &size))) {
+                                bytes.truncate(size);
+                                // save compressed template to file
+                                QFile tplFile(tplPath);
+                                tplFile.open(QFile::WriteOnly);
+                                tplFile.write( bytes );
+
+                                m_templates.push_back(
+                                            FaceTemplatePtr(
+                                                new FaceTemplate(
+                                                    imgPath,
+                                                    tplPath,
+                                                    bytes)) );
+                            }
+                        }
+                    }
+
+                } else {
+                    if (tpl != 0)
+                        qWarning("Leaking a templ that allegedly wasn't loaded");
+                }
+                NImageFree(greyscale);
+            }
+            NImageFree(image);
+        }
+    }
+}
+
+Verilook::FaceTemplate::FaceTemplate(const QString &imgPath, const QString &tplPath, const QByteArray &data)
+    : m_imgPath(imgPath)
+    , m_tplPath(tplPath)
+    , m_data(data)
+{
+}

@@ -23,7 +23,6 @@ BioDisplay::BioDisplay(QWidget *parent)
     setupTimers();
     setupUI();
     QApplication::processEvents();
-    loadDB();
     setupBiometricThread();
 }
 
@@ -87,19 +86,6 @@ void BioDisplay::setupUI()
     }
 }
 
-void BioDisplay::loadDB()
-{
-    QDir dbdir(QDir::homePath() +  "/Pictures/Faces/orig");
-    Q_ASSERT(dbdir.exists());
-    setCaption("Loading database...");
-    QApplication::processEvents();
-    foreach(QString path, dbdir.entryList(QStringList() << "*.jpg",QDir::Files)) {
-        m_pics << dbdir.filePath(path);
-    }
-    setCaption("Database loaded");
-
-}
-
 void BioDisplay::setCaption(const QString &text)
 {
     m_caption->setHtml(QString("<center>%1</center>").arg(text));
@@ -139,6 +125,14 @@ void BioDisplay::setupBiometricThread()
     m_bioThread = new BiometricThread(this);
 
     Q_ASSERT( connect( m_bioThread, SIGNAL(incomingFace(QImage)), SLOT(incomingFace(QImage)) ) );
+    Q_ASSERT( connect( m_bioThread, SIGNAL(newImagePath(QString)), SLOT(addImagePath(QString)) ) );
+    Q_ASSERT( connect( m_bioThread, SIGNAL(loadDbStarted()), SLOT(setCaptionLoading())) );
+    Q_ASSERT( connect( m_bioThread, SIGNAL(loadDbFinished()), SLOT(setCaptionLoaded())) );
 
     m_bioThread->start();
+}
+
+void BioDisplay::addImagePath(QString path)
+{
+    m_pics << path;
 }
