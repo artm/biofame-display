@@ -31,6 +31,9 @@ void BiometricThread::incomingFile()
         QList<QRect> faces;
         m_faceTracker->findFaces(incoming, faces);
         emit incomingFace(cropAroundFace(incoming,faces[0]));
+
+        // now we can extract the template...
+
     }
 }
 

@@ -55,8 +55,6 @@ FaceTracker::~FaceTracker() {
         isOk( NLicenseRelease(s_licenseList),
                   "NLicenseRelease failed",
                   "License successfully released" );
-    } else {
-        // clean up opencv detector
     }
 }
 

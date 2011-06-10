@@ -22,14 +22,19 @@ BioDisplay::BioDisplay(QWidget *parent)
 {
     setupTimers();
     setupUI();
+    QApplication::processEvents();
     loadDB();
-
     setupBiometricThread();
 }
 
 BioDisplay::~BioDisplay()
 {
-
+    if (m_bioThread->isRunning()) {
+        // proper thread destruction
+        m_bioThread->quit();
+        if (m_bioThread->wait( 2000 ))
+            delete m_bioThread;
+    }
 }
 
 void BioDisplay::setupUI()
@@ -131,9 +136,9 @@ void BioDisplay::incomingFace(QImage face)
 
 void BioDisplay::setupBiometricThread()
 {
-    m_bioThread = new BiometricThread();
+    m_bioThread = new BiometricThread(this);
 
     Q_ASSERT( connect( m_bioThread, SIGNAL(incomingFace(QImage)), SLOT(incomingFace(QImage)) ) );
 
-    m_bioThread->run();
+    m_bioThread->start();
 }
