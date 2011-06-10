@@ -8,6 +8,16 @@
 BioDisplay::BioDisplay(QWidget *parent)
     : QMainWindow(parent)
 {
+    createUI();
+}
+
+BioDisplay::~BioDisplay()
+{
+
+}
+
+void BioDisplay::createUI()
+{
     m_view = new QGraphicsView(this);
     setCentralWidget(m_view);
 
@@ -26,21 +36,21 @@ BioDisplay::BioDisplay(QWidget *parent)
     int hgap = (w - 2*faceW)/3;
 
     // big portraits
-    QGraphicsRectItem * mainPortrait = m_scene->addRect( -faceW/2,-faceH/2,faceW,faceH,QPen(QColor(50,50,50)) );
-    mainPortrait->setPos( hgap+faceW/2 ,h/2);
-    QGraphicsRectItem * matchPortrait = m_scene->addRect( -faceW/2,-faceH/2,faceW,faceH,QPen(QColor(50,50,50)) );
-    matchPortrait->setPos(w - (hgap+faceW/2),h/2);
+    m_mainPortrait = m_scene->addRect( -faceW/2,-faceH/2,faceW,faceH,QPen(QColor(50,50,50)) );
+    m_mainPortrait->setPos( hgap+faceW/2 ,h/2);
+    m_matchPortrait = m_scene->addRect( -faceW/2,-faceH/2,faceW,faceH,QPen(QColor(50,50,50)) );
+    m_matchPortrait->setPos(w - (hgap+faceW/2),h/2);
 
     // text
     QFont fnt;
     fnt.setPixelSize( h/12 );
-    QGraphicsTextItem * text = m_scene->addText( "", fnt );
-    text->setDefaultTextColor(QColor(100,100,100));
-    text->setTextWidth(w*2/3);
-    text->setHtml(QString("<center>%1</center>").arg("Fifteen Minutes of Biometric Fame"));
-    QSizeF tsz = text->boundingRect().size();
+    m_caption = m_scene->addText( "", fnt );
+    m_caption->setDefaultTextColor(QColor(100,100,100));
+    m_caption->setTextWidth(w*2/3);
+    m_caption->setHtml(QString("<center>%1</center>").arg("Fifteen Minutes of Biometric Fame"));
+    QSizeF tsz = m_caption->boundingRect().size();
     // vertically center under the portrait...
-    text->setPos(w/2 - tsz.width()/2, h - vspace/2 - tsz.height()/2);
+    m_caption->setPos(w/2 - tsz.width()/2, h - vspace/2 - tsz.height()/2);
 
     // small portraits
     int smallFaceH = vspace*3/4, smallFaceW = smallFaceH*2/3;
@@ -48,13 +58,9 @@ BioDisplay::BioDisplay(QWidget *parent)
     int nSmallFaces = (w - smallFaceMargin) / (smallFaceW+smallFaceMargin);
     int offs = smallFaceMargin+smallFaceW/2;
     for(int i = 0; i<nSmallFaces; i++) {
-        QGraphicsItem * smallPortrait = m_scene->addRect( -smallFaceW/2, -smallFaceH/2, smallFaceW, smallFaceH,
+        QGraphicsRectItem * smallPortrait = m_scene->addRect( -smallFaceW/2, -smallFaceH/2, smallFaceW, smallFaceH,
                                                           QPen(QColor(50,50,50)) );
         smallPortrait->setPos(offs+i*(smallFaceMargin+smallFaceW),vspace/2);
+        m_smallPortraits << smallPortrait;
     }
-}
-
-BioDisplay::~BioDisplay()
-{
-
 }
