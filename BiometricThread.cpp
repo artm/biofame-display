@@ -12,6 +12,10 @@ BiometricThread::BiometricThread(QObject *parent)
     m_verilook = new Verilook(this);
     // retransmit incoming face signal
     Q_ASSERT( connect(m_verilook, SIGNAL(incomingFace(QImage,QRect)), SLOT(onFaceDetected(QImage,QRect))) );
+    // also connect some signals to parent
+    Q_ASSERT( connect(m_verilook, SIGNAL(noMatchFound()), parent, SLOT(showNoMatch())) );
+    Q_ASSERT( connect(m_verilook, SIGNAL(identified(QString)), parent, SLOT(showMatch(QString))) );
+
 
     QString incomingPath = QDir::homePath() + "/Pictures/Faces/incoming";
     m_incomingDir = QDir(incomingPath);
@@ -45,7 +49,7 @@ void BiometricThread::run()
 
 QImage BiometricThread::cropAroundFace(const QImage &orig, const QRect &face)
 {
-    int w = face.width() * 4 / 3, h = w * Bio::CROP_RATIO;
+    int w = Bio::CROP_WIDTH_SCALE * face.width(), h = Bio::CROP_RATIO * w;
     int dw = w - face.width(), dh = h - face.height();
 
     return orig.copy( face.x()-dw/2, face.y()-dh/2, w, h );

@@ -4,6 +4,8 @@
 #include <QImage>
 #include <QFileInfo>
 
+#include <NMatcherParams.h>
+
 const char * s_defaultPort = "5000";
 const char * s_defaultServer = "/local";
 const char * s_licenseList = "SingleComputerLicense:VLExtractor,SingleComputerLicense:VLMatcher";
@@ -42,6 +44,10 @@ Verilook::Verilook(QObject * parent)
          && available) {
         Q_ASSERT( isOk(NleCreate(&m_extractor), "No verilook extractor created", "Verilook extractor created") );
         Q_ASSERT( isOk(NMCreate(&m_matcher), "No verilook matcher created", "Verilook matcher created"));
+        // relax matcher parameters...
+
+        NInt v = 1;
+        NMSetParameter( m_matcher, NM_PART_NONE, NMP_MATCHING_THRESHOLD, &v );
     }
 }
 
@@ -240,9 +246,67 @@ Verilook::FaceTemplate::FaceTemplate(const QString &imgPath, const QString &tplP
 
 void Verilook::scrutinize(const QImage &image)
 {
-    QList<QRect> faces;
-    findFaces(image, faces);
-    if (faces.size() > 0) {
-        emit incomingFace(image, faces[0]);
+    HNImage img;
+
+    QImage greyFrame = toGrayScale(image);
+
+    if ( !isOk( NImageCreateWrapper(
+                   npfGrayscale,
+                   greyFrame.width(), greyFrame.height(), greyFrame.bytesPerLine(),
+                   0.0, 0.0, (void*)greyFrame.bits(), NFalse, &img),
+               "Coudn't wrap QImage in verilook's HNImage"))
+        return;
+
+    /* detect a face */
+    NleFace face;
+    NBool detected = false;
+    isOk( NleDetectFace( m_extractor, img, &detected, &face), "Error during face detection" );
+
+    if (!detected) return;
+
+    emit incomingFace(image, QRect(face.Rectangle.X, face.Rectangle.Y, face.Rectangle.Width, face.Rectangle.Height));
+
+    NleDetectionDetails details;
+    NleExtractionStatus status;
+    HNLTemplate tpl = 0;
+
+    Q_ASSERT( isOk( NleExtract(m_extractor, img, &details, &status, &tpl)));
+    if (status != nleesTemplateCreated) return;
+
+    // extract template data
+    NSizeType maxSize, size;
+    QByteArray memTpl;
+    Q_ASSERT( isOk(NLTemplateGetSize(tpl, 0, &maxSize)) );
+    memTpl.resize(maxSize);
+    Q_ASSERT( isOk(NLTemplateSaveToMemory( tpl, memTpl.data(), memTpl.size(), 0, &size)));
+
+    NMMatchDetails * m_details = 0;
+    Q_ASSERT( isOk(NMIdentifyStart( m_matcher, memTpl.data(), memTpl.size(), &m_details),
+                   "Couldn't start matching") );
+
+    FaceTemplatePtr best;
+    int bestScore = 0;
+    QList< FaceTemplatePtr >::iterator iter = m_templates.begin();
+    for(;iter != m_templates.end(); ++iter) {
+        NInt score;
+        FaceTemplatePtr dbFace(*iter);
+        Q_ASSERT( isOk( NMIdentifyNext(m_matcher, dbFace->m_data.data(), dbFace->m_data.size(), m_details, &score)));
+        // update best match if any...
+        if (score > bestScore) {
+            bestScore = score;
+            best = dbFace;
+        }
     }
+    Q_ASSERT( isOk(NMIdentifyEnd(m_matcher)) );
+
+    if (m_details)
+        NMMatchDetailsFree(m_details);
+
+    if (tpl)
+        NLTemplateFree(tpl);
+
+    if (bestScore > 0)
+        emit identified( best->m_imgPath );
+    else
+        emit noMatchFound();
 }

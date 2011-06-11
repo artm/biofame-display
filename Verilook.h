@@ -19,7 +19,9 @@ public:
     bool usesVerilook() const { return m_extractor != 0; }
 
 signals:
-    void incomingFace(const QImage& where, const QRect& face);
+    void incomingFace(QImage where, QRect face);
+    void identified(QString imgPath);
+    void noMatchFound();
 
 public slots:
     void setMinIOD(int value);

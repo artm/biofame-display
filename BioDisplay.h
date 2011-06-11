@@ -22,12 +22,16 @@ public:
     ~BioDisplay();
 
 public slots:
+    void showPic(const QString& path);
     void showRndPic();
     void incomingFace(QImage face);
     void addImagePath(QString path);
     void setCaption(const QString& text);
     void setCaptionLoading() { setCaption("Loading database..."); }
     void setCaptionLoaded() { setCaption("Database loaded"); }
+
+    void showMatch(const QString& imgPath);
+    void showNoMatch();
 
 protected:
     void setupUI();

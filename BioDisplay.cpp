@@ -1,5 +1,6 @@
 #include "BioDisplay.h"
 #include "BiometricThread.h"
+#include "CommonTypes.h"
 
 #include <QGraphicsView>
 #include <QGraphicsScene>
@@ -51,7 +52,7 @@ void BioDisplay::setupUI()
     m_view->fitInView( m_scene->sceneRect() );
 
     int w = width(), h = height();
-    m_faceH = h/2, m_faceW = m_faceH*2/3;
+    m_faceH = h/2, m_faceW = m_faceH / Bio::CROP_RATIO;
     m_vertSpace = h/2 - m_faceH/2;
     int hgap = (w - 2*m_faceW)/3;
 
@@ -100,6 +101,21 @@ void BioDisplay::searchAnimation()
     m_rndPicTimer.start();
 }
 
+void BioDisplay::showNoMatch()
+{
+    setCaption("No match found");
+    m_rndPicTimer.stop();
+}
+
+void BioDisplay::showMatch(const QString &imgPath)
+{
+    setCaption("Identified as: " + QFileInfo(imgPath).fileName());
+    showPic(imgPath);
+
+    m_rndPicTimer.stop();
+}
+
+
 void BioDisplay::setupTimers()
 {
     m_rndPicTimer.setInterval(50);
@@ -108,10 +124,15 @@ void BioDisplay::setupTimers()
 
 void BioDisplay::showRndPic()
 {
-    QString path = random( m_pics );
+    showPic( random( m_pics ) );
+}
+
+void BioDisplay::showPic(const QString &path)
+{
     QPixmap pic( path );
     m_matchPortrait->setPixmap(pic.scaled(m_faceW,m_faceH));
 }
+
 
 void BioDisplay::incomingFace(QImage face)
 {
@@ -136,3 +157,4 @@ void BioDisplay::addImagePath(QString path)
 {
     m_pics << path;
 }
+
