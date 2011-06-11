@@ -1,8 +1,11 @@
 #include "Verilook.h"
+#include "CommonTypes.h"
 
 #include <QtDebug>
 #include <QImage>
 #include <QFileInfo>
+#include <QRegExp>
+#include <QDir>
 
 #include <NMatcherParams.h>
 
@@ -167,14 +170,12 @@ void Verilook::addDbFace(const QString& imgPath)
         // load from file
         QFile tplFile(tplPath);
         tplFile.open(QFile::ReadOnly);
-        m_templates.push_back(
-                    FaceTemplatePtr(
-                        new FaceTemplate(imgPath, tplPath,
-                                         tplFile.readAll())));
+        m_templates.push_back( FaceTemplatePtr( new FaceTemplate(imgPath, tplPath, tplFile.readAll())));
+        markSlot(imgPath);
     } else {
         HNImage image, greyscale;
         NleDetectionDetails details;
-        HNLTemplate tpl;
+        HNLTemplate tpl = 0;
         NleExtractionStatus extrStatus;
 
         if (isOk(NImageCreateFromFile(imgPath.toLocal8Bit(), NULL, &image))) {
@@ -191,41 +192,9 @@ void Verilook::addDbFace(const QString& imgPath)
                             &tpl);
 
                 if (isOk(result) && (extrStatus == nleesTemplateCreated)) {
-                    // compress
-                    HNLTemplate compTemplate;
-
-                    if (isOk(NleCompressEx(tpl, nletsSmall, &compTemplate))) {
-
-                        // free uncompressed template
-                        NLTemplateFree(tpl);
-
-                        // get the size of the template
-                        NSizeType maxSize;
-                        if (isOk(NLTemplateGetSize(compTemplate, 0, &maxSize))) {
-
-                            // transform to byte array
-                            NSizeType size;
-                            QByteArray bytes(maxSize, 0);
-
-                            if (isOk(NLTemplateSaveToMemory(compTemplate,
-                                                            bytes.data(), maxSize,
-                                                            0, &size))) {
-                                bytes.truncate(size);
-                                // save compressed template to file
-                                QFile tplFile(tplPath);
-                                tplFile.open(QFile::WriteOnly);
-                                tplFile.write( bytes );
-
-                                m_templates.push_back(
-                                            FaceTemplatePtr(
-                                                new FaceTemplate(
-                                                    imgPath,
-                                                    tplPath,
-                                                    bytes)) );
-                            }
-                        }
-                    }
-
+                    saveTemplate(imgPath, tplPath, tpl);
+                    // free uncompressed template
+                    NLTemplateFree(tpl);
                 } else {
                     if (tpl != 0)
                         qWarning("Leaking a templ that allegedly wasn't loaded");
@@ -248,6 +217,7 @@ void Verilook::scrutinize(const QImage &image)
 {
     HNImage img;
 
+    QImage cropped;
     QImage greyFrame = toGrayScale(image);
 
     if ( !isOk( NImageCreateWrapper(
@@ -264,7 +234,8 @@ void Verilook::scrutinize(const QImage &image)
 
     if (!detected) return;
 
-    emit incomingFace(image, QRect(face.Rectangle.X, face.Rectangle.Y, face.Rectangle.Width, face.Rectangle.Height));
+    cropped = cropAroundFace(image, QRect(face.Rectangle.X, face.Rectangle.Y, face.Rectangle.Width, face.Rectangle.Height));
+    emit incomingFace(cropped);
 
     NleDetectionDetails details;
     NleExtractionStatus status;
@@ -299,14 +270,85 @@ void Verilook::scrutinize(const QImage &image)
     }
     Q_ASSERT( isOk(NMIdentifyEnd(m_matcher)) );
 
+    if (bestScore > 0) {
+        emit identified( best->m_imgPath );
+        saveToSlot( slotName(best->m_imgPath), cropped, tpl );
+    } else
+        emit noMatchFound();
+
     if (m_details)
         NMMatchDetailsFree(m_details);
 
     if (tpl)
         NLTemplateFree(tpl);
-
-    if (bestScore > 0)
-        emit identified( best->m_imgPath );
-    else
-        emit noMatchFound();
 }
+
+QString Verilook::slotName(const QString &path, int * num)
+{
+    QRegExp unnum("\\d+$");
+
+    if (num && unnum.indexIn(path) > -1)
+        *num = unnum.cap(0).toInt();
+
+    return QFileInfo(path).baseName().remove(unnum);
+}
+
+void Verilook::markSlot(const QString &imgPath)
+{
+    int num = 0;
+    QString slot = slotName(QFileInfo(imgPath).baseName(),&num);
+    if (!m_slotCounts.contains(slot) || (m_slotCounts[slot] < num))
+        m_slotCounts[slot]=num;
+}
+
+void Verilook::saveToSlot(const QString &slot, QImage image, HNLTemplate tpl )
+{
+    QString basepath = m_newFacesDir.filePath( QString("%1%2").arg(slot).arg(++m_slotCounts[slot]) );
+    QString imgPath = basepath + ".jpg", tplPath = basepath + ".tpl";
+    image.save( imgPath );
+    // save the template
+    // can't rely on loading here - too much cropping breaks the extraction.
+    saveTemplate( imgPath, tplPath, tpl );
+}
+
+void Verilook::setNewFacesDir(const QString &path)
+{
+    m_newFacesDir = QDir(path);
+    Q_ASSERT(m_newFacesDir.exists());
+}
+
+QImage Verilook::cropAroundFace(const QImage &orig, const QRect &face)
+{
+    int w = Bio::CROP_WIDTH_SCALE * face.width(), h = Bio::CROP_RATIO * w;
+    int dw = w - face.width(), dh = h - face.height();
+
+    return orig.copy( face.x()-dw/2, face.y()-dh/2, w, h );
+}
+
+void Verilook::saveTemplate(const QString &imgPath, const QString &tplPath, HNLTemplate tpl)
+{
+    // compress
+    HNLTemplate compTemplate;
+
+    Q_ASSERT( isOk(NleCompressEx(tpl, nletsSmall, &compTemplate)) );
+
+    // get the size of the template
+    NSizeType maxSize;
+    Q_ASSERT( isOk(NLTemplateGetSize(compTemplate, 0, &maxSize)) );
+
+    // transform to byte array
+    NSizeType size;
+    QByteArray bytes(maxSize, 0);
+
+    Q_ASSERT( isOk(NLTemplateSaveToMemory(compTemplate, bytes.data(), maxSize, 0, &size)));
+    bytes.truncate(size);
+    // save compressed template to file
+    QFile tplFile(tplPath);
+    tplFile.open(QFile::WriteOnly);
+    tplFile.write( bytes );
+
+    // add to the database in memory as well
+    m_templates.push_back( FaceTemplatePtr( new FaceTemplate( imgPath, tplPath, bytes)) );
+    markSlot(imgPath);
+}
+

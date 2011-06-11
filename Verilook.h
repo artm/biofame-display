@@ -4,6 +4,8 @@
 #include <QThread>
 #include <QImage>
 #include <QSharedPointer>
+#include <QHash>
+#include <QDir>
 
 #include <NCore.h>
 #include <NLExtractor.h>
@@ -16,10 +18,10 @@ public:
     explicit Verilook(QObject * parent);
     virtual ~Verilook();
     void findFaces(const QImage& frame, QList<QRect>& faces);
-    bool usesVerilook() const { return m_extractor != 0; }
+    void setNewFacesDir(const QString& path);
 
 signals:
-    void incomingFace(QImage where, QRect face);
+    void incomingFace(QImage face);
     void identified(QString imgPath);
     void noMatchFound();
 
@@ -32,6 +34,11 @@ public slots:
     void scrutinize(const QImage& image);
 
 private:
+    static QString slotName(const QString& path, int * num = 0);
+    void markSlot(const QString& imgPath); // increase slot use count
+    void saveToSlot( const QString& slot, QImage image, HNLTemplate tpl );
+    void saveTemplate( const QString& imgPath, const QString& tplPath, HNLTemplate tpl );
+
     struct FaceTemplate {
         QString m_imgPath, m_tplPath;
         QByteArray m_data;
@@ -42,13 +49,17 @@ private:
     };
     typedef QSharedPointer<FaceTemplate> FaceTemplatePtr;
 
-    HNLExtractor m_extractor;
-    HNMatcher m_matcher;
-    QList< FaceTemplatePtr > m_templates;
+    static QImage cropAroundFace(const QImage& orig, const QRect& face);
     static QString errorString(NResult result);
     static bool isOk(NResult result,
                      QString errorSuffix = QString(),
                      QString successMessage = QString());
+
+    HNLExtractor m_extractor;
+    HNMatcher m_matcher;
+    QList< FaceTemplatePtr > m_templates;
+    QHash< QString, int > m_slotCounts; // how many images per slot?
+    QDir m_newFacesDir;
 };
 
 

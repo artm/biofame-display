@@ -9,8 +9,8 @@
 [x] biometric thread: start matching, display thread - show random images from the database scroll in the smalls
 
 [ ] better match found handler:
-    [ ] add the image to database (in memory and on disk)
+    [x] add the image to database (in memory and on disk)
     [ ] display "neighbours" (including the new one)
     [x] show decoded slot name
-    [ ] delete the original incoming picture
+    [x] delete the original incoming picture
 

@@ -9,15 +9,22 @@
 BiometricThread::BiometricThread(QObject *parent)
     : QThread(parent)
 {
+    m_root = QDir(QDir::homePath() + "/Pictures/Faces");
+    Q_ASSERT( m_root.exists() );
+
     m_verilook = new Verilook(this);
+    QString newFacesPath = m_root.filePath("new");
+    if (!QDir(newFacesPath).exists())
+        Q_ASSERT(m_root.mkdir("new"));
+    m_verilook->setNewFacesDir(newFacesPath);
     // retransmit incoming face signal
-    Q_ASSERT( connect(m_verilook, SIGNAL(incomingFace(QImage,QRect)), SLOT(onFaceDetected(QImage,QRect))) );
+    Q_ASSERT( connect(m_verilook, SIGNAL(incomingFace(QImage)), parent, SLOT(incomingFace(QImage))) );
     // also connect some signals to parent
     Q_ASSERT( connect(m_verilook, SIGNAL(noMatchFound()), parent, SLOT(showNoMatch())) );
     Q_ASSERT( connect(m_verilook, SIGNAL(identified(QString)), parent, SLOT(showMatch(QString))) );
 
 
-    QString incomingPath = QDir::homePath() + "/Pictures/Faces/incoming";
+    QString incomingPath = m_root.filePath("incoming");
     m_incomingDir = QDir(incomingPath);
     foreach(QString p, m_incomingDir.entryList(QDir::Files)) {
         QFile(m_incomingDir.filePath(p)).remove();
@@ -37,40 +44,29 @@ void BiometricThread::incomingFile()
 
         QImage incoming(m_incomingDir.filePath(allJpegs[0]));
         m_verilook->scrutinize( incoming );
-
+        foreach(QString jpg, allJpegs) {
+            m_incomingDir.remove(jpg);
+        }
     }
 }
 
 void BiometricThread::run()
 {
-    loadDb();
+    emit loadDbStarted();
+    loadDb(m_root.filePath("orig"));
+    loadDb(m_root.filePath("new"));
+    emit loadDbFinished();
     exec();
 }
 
-QImage BiometricThread::cropAroundFace(const QImage &orig, const QRect &face)
+void BiometricThread::loadDb(const QString& path)
 {
-    int w = Bio::CROP_WIDTH_SCALE * face.width(), h = Bio::CROP_RATIO * w;
-    int dw = w - face.width(), dh = h - face.height();
-
-    return orig.copy( face.x()-dw/2, face.y()-dh/2, w, h );
-}
-
-void BiometricThread::loadDb()
-{
-    QDir dbdir(QDir::homePath() +  "/Pictures/Faces/orig");
+    QDir dbdir(path);
     Q_ASSERT(dbdir.exists());
-    emit loadDbStarted();
     foreach(QString path, dbdir.entryList(QStringList() << "*.jpg",QDir::Files)) {
         QString fullPath = dbdir.filePath(path);
         emit newImagePath(fullPath);
         m_verilook->addDbFace(fullPath);
         QApplication::processEvents();
     }
-    emit loadDbFinished();
 }
-
-void BiometricThread::onFaceDetected(QImage image, QRect face)
-{
-    emit incomingFace(cropAroundFace(image, face));
-}
-

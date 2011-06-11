@@ -22,17 +22,15 @@ signals:
 
 public slots:
     void incomingFile();
-    void onFaceDetected(QImage image, QRect face);
 
 protected:
     virtual void run();
 
-    QImage cropAroundFace(const QImage& orig, const QRect& face);
-    void loadDb();
+    void loadDb(const QString& path);
 
     Verilook * m_verilook;
     QFileSystemWatcher * m_watcher;
-    QDir m_incomingDir;
+    QDir m_root, m_incomingDir;
 };
 
 #endif // BIOMETRICTHREAD_H
