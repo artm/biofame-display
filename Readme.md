@@ -35,3 +35,4 @@ should go differently:
 2. the BT detects face and crops, posts the cropped image to the main thread.
 3. the BT then continues with doing things to the picture.
 
+oops. Verilook hides all evil types so we need to emit that signal from within it.

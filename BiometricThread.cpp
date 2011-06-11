@@ -8,8 +8,11 @@
 
 BiometricThread::BiometricThread(QObject *parent)
     : QThread(parent)
-    , m_verilook(new Verilook(this))
 {
+    m_verilook = new Verilook(this);
+    // retransmit incoming face signal
+    Q_ASSERT( connect(m_verilook, SIGNAL(incomingFace(QImage,QRect)), SLOT(onFaceDetected(QImage,QRect))) );
+
     QString incomingPath = QDir::homePath() + "/Pictures/Faces/incoming";
     m_incomingDir = QDir(incomingPath);
     foreach(QString p, m_incomingDir.entryList(QDir::Files)) {
@@ -27,12 +30,9 @@ void BiometricThread::incomingFile()
     // maybe load
     QStringList allJpegs = m_incomingDir.entryList(QStringList()<<"*.jpg",QDir::Files,QDir::Time|QDir::Reversed);
     if (allJpegs.size()>0) {
-        QImage incoming(m_incomingDir.filePath(allJpegs[0]));
-        QList<QRect> faces;
-        m_verilook->findFaces(incoming, faces);
-        emit incomingFace(cropAroundFace(incoming,faces[0]));
 
-        // now we can extract the template...
+        QImage incoming(m_incomingDir.filePath(allJpegs[0]));
+        m_verilook->scrutinize( incoming );
 
     }
 }
@@ -63,5 +63,10 @@ void BiometricThread::loadDb()
         QApplication::processEvents();
     }
     emit loadDbFinished();
+}
+
+void BiometricThread::onFaceDetected(QImage image, QRect face)
+{
+    emit incomingFace(cropAroundFace(image, face));
 }
 

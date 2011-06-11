@@ -22,6 +22,7 @@ signals:
 
 public slots:
     void incomingFile();
+    void onFaceDetected(QImage image, QRect face);
 
 protected:
     virtual void run();

@@ -18,12 +18,16 @@ public:
     void findFaces(const QImage& frame, QList<QRect>& faces);
     bool usesVerilook() const { return m_extractor != 0; }
 
+signals:
+    void incomingFace(const QImage& where, const QRect& face);
+
 public slots:
     void setMinIOD(int value);
     void setMaxIOD(int value);
     void setConfidenceThreshold(double value);
     void setQualityThreshold(int value);
     void addDbFace(const QString& imgPath);
+    void scrutinize(const QImage& image);
 
 private:
     struct FaceTemplate {

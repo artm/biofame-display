@@ -237,3 +237,12 @@ Verilook::FaceTemplate::FaceTemplate(const QString &imgPath, const QString &tplP
     , m_data(data)
 {
 }
+
+void Verilook::scrutinize(const QImage &image)
+{
+    QList<QRect> faces;
+    findFaces(image, faces);
+    if (faces.size() > 0) {
+        emit incomingFace(image, faces[0]);
+    }
+}
