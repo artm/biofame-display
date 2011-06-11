@@ -38,6 +38,7 @@ protected:
     void setupTimers();
     void setupBiometricThread();
     void searchAnimation();
+    QString transformName(const QString& cadabra);
 
     QGraphicsView * m_view;
     QGraphicsScene * m_scene;

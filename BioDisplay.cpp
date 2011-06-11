@@ -109,7 +109,7 @@ void BioDisplay::showNoMatch()
 
 void BioDisplay::showMatch(const QString &imgPath)
 {
-    setCaption("Identified as: " + QFileInfo(imgPath).fileName());
+    setCaption("Identified as: " + transformName(QFileInfo(imgPath).baseName()));
     showPic(imgPath);
 
     m_rndPicTimer.stop();
@@ -156,5 +156,11 @@ void BioDisplay::setupBiometricThread()
 void BioDisplay::addImagePath(QString path)
 {
     m_pics << path;
+}
+
+QString BioDisplay::transformName(const QString &cadabra)
+{
+    QRegExp pattern("(^\\d+|\\d+$|_+)");
+    return QString(cadabra).remove(pattern).replace("-"," ");
 }
 
