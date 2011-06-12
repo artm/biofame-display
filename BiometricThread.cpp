@@ -4,7 +4,7 @@
 
 #include <QFileSystemWatcher>
 #include <QApplication>
-
+#include <QDebug>
 
 BiometricThread::BiometricThread(QObject *parent)
     : QThread(parent)
@@ -19,9 +19,9 @@ BiometricThread::BiometricThread(QObject *parent)
     m_verilook->setNewFacesDir(newFacesPath);
     // retransmit incoming face signal
     Q_ASSERT( connect(m_verilook, SIGNAL(incomingFace(QImage)), parent, SLOT(incomingFace(QImage))) );
-    // also connect some signals to parent
     Q_ASSERT( connect(m_verilook, SIGNAL(noMatchFound()), parent, SLOT(showNoMatch())) );
     Q_ASSERT( connect(m_verilook, SIGNAL(identified(QString)), parent, SLOT(showMatch(QString))) );
+    Q_ASSERT( connect( m_verilook, SIGNAL(faceAdded(QString)), parent, SLOT(addImagePath(QString)) ) );
 
 
     QString incomingPath = m_root.filePath("incoming");
@@ -43,6 +43,7 @@ void BiometricThread::incomingFile()
     if (allJpegs.size()>0) {
 
         QImage incoming(m_incomingDir.filePath(allJpegs[0]));
+        qDebug() << "Scrutinizing:" << allJpegs[0];
         m_verilook->scrutinize( incoming );
         foreach(QString jpg, allJpegs) {
             m_incomingDir.remove(jpg);
@@ -65,7 +66,6 @@ void BiometricThread::loadDb(const QString& path)
     Q_ASSERT(dbdir.exists());
     foreach(QString path, dbdir.entryList(QStringList() << "*.jpg",QDir::Files)) {
         QString fullPath = dbdir.filePath(path);
-        emit newImagePath(fullPath);
         m_verilook->addDbFace(fullPath);
         QApplication::processEvents();
     }

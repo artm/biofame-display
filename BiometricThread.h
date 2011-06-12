@@ -18,7 +18,6 @@ signals:
     void incomingFace(QImage croppedFace);
     void loadDbStarted();
     void loadDbFinished();
-    void newImagePath(QString path);
 
 public slots:
     void incomingFile();

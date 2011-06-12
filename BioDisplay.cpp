@@ -18,6 +18,12 @@ X random(QList<X> lst)
     return lst[ random() % lst.size() ];
 }
 
+template<class Key, class X>
+X random(QHash<Key, X> map)
+{
+    return map[random( map.keys() )];
+}
+
 BioDisplay::BioDisplay(QWidget *parent)
     : QMainWindow(parent)
 {
@@ -75,15 +81,17 @@ void BioDisplay::setupUI()
     setCaption("Fifteen Minutes of Biometric Fame");
 
     // small portraits
-    int smallFaceH = m_vertSpace*3/4, smallFaceW = smallFaceH*2/3;
-    int smallFaceMargin = (m_vertSpace-smallFaceH)/2;
-    int nSmallFaces = (w - smallFaceMargin) / (smallFaceW+smallFaceMargin);
-    int offs = smallFaceMargin+smallFaceW/2;
+    m_smallFaceH = m_vertSpace*3/4, m_smallFaceW = m_smallFaceH*2/3;
+    int smallFaceMargin = (m_vertSpace-m_smallFaceH)/2;
+    int nSmallFaces = (w - smallFaceMargin) / (m_smallFaceW+smallFaceMargin);
+    int offs = smallFaceMargin+m_smallFaceW/2;
     for(int i = 0; i<nSmallFaces; i++) {
-        QGraphicsRectItem * smallPortrait = m_scene->addRect( -smallFaceW/2, -smallFaceH/2, smallFaceW, smallFaceH,
+        QGraphicsRectItem * smallPortrait = m_scene->addRect( -m_smallFaceW/2, -m_smallFaceH/2, m_smallFaceW, m_smallFaceH,
                                                           QPen(QColor(50,50,50)) );
-        smallPortrait->setPos(offs+i*(smallFaceMargin+smallFaceW),m_vertSpace/2);
-        m_smallPortraits << new QGraphicsPixmapItem(smallPortrait);
+        smallPortrait->setPos(offs+i*(smallFaceMargin+m_smallFaceW),m_vertSpace/2);
+        QGraphicsPixmapItem * item = new QGraphicsPixmapItem(smallPortrait);
+        item->setOffset( -m_smallFaceW/2, -m_smallFaceH/2 );
+        m_smallPortraits << item;
     }
 }
 
@@ -109,8 +117,15 @@ void BioDisplay::showNoMatch()
 
 void BioDisplay::showMatch(const QString &imgPath)
 {
-    setCaption("Identified as: " + transformName(QFileInfo(imgPath).baseName()));
+    QString slot = transformName(imgPath);
+    setCaption("Identified as: " + slot);
     showPic(imgPath);
+
+    // show the rest of the slot...
+    int i = 0;
+    foreach(QString path, m_slots[slot]) {
+        showSmallPic(path,i++);
+    }
 
     m_rndPicTimer.stop();
 }
@@ -124,7 +139,7 @@ void BioDisplay::setupTimers()
 
 void BioDisplay::showRndPic()
 {
-    showPic( random( m_pics ) );
+    showPic( random( random( m_slots ) ) );
 }
 
 void BioDisplay::showPic(const QString &path)
@@ -133,6 +148,15 @@ void BioDisplay::showPic(const QString &path)
     m_matchPortrait->setPixmap(pic.scaled(m_faceW,m_faceH));
 }
 
+bool BioDisplay::showSmallPic(const QString &path, int i)
+{
+    if (i >= m_smallPortraits.size()) return false;
+
+    QPixmap pic( path );
+    QGraphicsPixmapItem * item = m_smallPortraits[i];
+    item->setPixmap(pic.scaled(m_smallFaceW,m_smallFaceH));
+    return true;
+}
 
 void BioDisplay::incomingFace(QImage face)
 {
@@ -146,7 +170,6 @@ void BioDisplay::setupBiometricThread()
     m_bioThread = new BiometricThread(this);
 
     Q_ASSERT( connect( m_bioThread, SIGNAL(incomingFace(QImage)), SLOT(incomingFace(QImage)) ) );
-    Q_ASSERT( connect( m_bioThread, SIGNAL(newImagePath(QString)), SLOT(addImagePath(QString)) ) );
     Q_ASSERT( connect( m_bioThread, SIGNAL(loadDbStarted()), SLOT(setCaptionLoading())) );
     Q_ASSERT( connect( m_bioThread, SIGNAL(loadDbFinished()), SLOT(setCaptionLoaded())) );
 
@@ -155,12 +178,13 @@ void BioDisplay::setupBiometricThread()
 
 void BioDisplay::addImagePath(QString path)
 {
-    m_pics << path;
+    QString slot = transformName(path);
+    m_slots[slot] << path;
 }
 
 QString BioDisplay::transformName(const QString &cadabra)
 {
-    QRegExp pattern("(^\\d+|\\d+$|_+)");
-    return QString(cadabra).remove(pattern).replace("-"," ");
+    QRegExp pattern("(\\d+$|_+)");
+    return QString(QFileInfo(cadabra).baseName()).remove(pattern).replace("-"," ");
 }
 

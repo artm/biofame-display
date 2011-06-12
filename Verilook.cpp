@@ -46,6 +46,9 @@ Verilook::Verilook(QObject * parent)
                "NLicenseObtain failed")
          && available) {
         Q_ASSERT( isOk(NleCreate(&m_extractor), "No verilook extractor created", "Verilook extractor created") );
+
+        setQualityThreshold(1);
+
         Q_ASSERT( isOk(NMCreate(&m_matcher), "No verilook matcher created", "Verilook matcher created"));
         // relax matcher parameters...
 
@@ -172,6 +175,7 @@ void Verilook::addDbFace(const QString& imgPath)
         tplFile.open(QFile::ReadOnly);
         m_templates.push_back( FaceTemplatePtr( new FaceTemplate(imgPath, tplPath, tplFile.readAll())));
         markSlot(imgPath);
+        emit faceAdded(imgPath);
     } else {
         HNImage image, greyscale;
         NleDetectionDetails details;
@@ -242,7 +246,10 @@ void Verilook::scrutinize(const QImage &image)
     HNLTemplate tpl = 0;
 
     Q_ASSERT( isOk( NleExtract(m_extractor, img, &details, &status, &tpl)));
-    if (status != nleesTemplateCreated) return;
+    if (status != nleesTemplateCreated) {
+        emit noMatchFound();
+        return;
+    }
 
     // extract template data
     NSizeType maxSize, size;
@@ -350,5 +357,6 @@ void Verilook::saveTemplate(const QString &imgPath, const QString &tplPath, HNLT
     // add to the database in memory as well
     m_templates.push_back( FaceTemplatePtr( new FaceTemplate( imgPath, tplPath, bytes)) );
     markSlot(imgPath);
+    emit faceAdded(imgPath);
 }
 

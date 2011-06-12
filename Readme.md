@@ -10,7 +10,9 @@
 
 [ ] better match found handler:
     [x] add the image to database (in memory and on disk)
+    [ ] also add it to the slots of the display
     [ ] display "neighbours" (including the new one)
     [x] show decoded slot name
     [x] delete the original incoming picture
 
+[ ] refactoring - separate db shared between other objects

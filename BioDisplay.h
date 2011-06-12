@@ -6,6 +6,7 @@
 #include <QStringList>
 #include <QTimer>
 #include <QDir>
+#include <QHash>
 
 class QGraphicsView;
 class QGraphicsScene;
@@ -24,6 +25,7 @@ public:
 public slots:
     void showPic(const QString& path);
     void showRndPic();
+    bool showSmallPic(const QString &path, int i);
     void incomingFace(QImage face);
     void addImagePath(QString path);
     void setCaption(const QString& text);
@@ -46,8 +48,8 @@ protected:
     QGraphicsPixmapItem * m_matchPortrait;
     QGraphicsTextItem * m_caption;
     QList<QGraphicsPixmapItem*> m_smallPortraits;
-    int m_faceW, m_faceH, m_vertSpace;
-    QStringList m_pics;
+    int m_faceW, m_faceH, m_vertSpace, m_smallFaceH, m_smallFaceW;
+    QHash<QString, QStringList> m_slots;
     QTimer m_rndPicTimer;
     BiometricThread * m_bioThread;
 };

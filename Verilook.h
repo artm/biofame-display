@@ -23,6 +23,7 @@ public:
 signals:
     void incomingFace(QImage face);
     void identified(QString imgPath);
+    void faceAdded(QString imgPath);
     void noMatchFound();
 
 public slots:
