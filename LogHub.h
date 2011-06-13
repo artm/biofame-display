@@ -1,20 +1,28 @@
 #ifndef LOGHUB_H
 #define LOGHUB_H
 
-#include <QObject>
+/*
+ * Logging hub.
+ *
+ * 1. redirects qt debug / error output to glog.
+ * 2. shows the fatal message in a QMessageBox before dying.
+ */
 
-class LogHub : public QObject
+#include <QString>
+class QWidget;
+
+class LogHub
 {
-    Q_OBJECT
 public:
-    explicit LogHub(QObject *parent = 0);
+    LogHub(const QString& appName);
 
-signals:
-
-public slots:
+private:
+    static void msgHandler(QtMsgType severity, const char * message);
     void message(QtMsgType severity, const char * message);
     void onFatal(const QString& message);
 
+    static LogHub * s_loghub;
+    QString m_appName;
 };
 
 #endif // LOGHUB_H
