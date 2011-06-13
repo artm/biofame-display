@@ -43,3 +43,5 @@
     [ ] on display convert - AMD _ to spaces
 
 [ ] progress report when loading database...
+[ ] if can't make template for DB image - rename it to xxx.jpg.broken
+[ ] check if other image types are present
