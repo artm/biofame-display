@@ -299,7 +299,7 @@ Verilook::FaceTemplate::FaceTemplate(const QString& imgPath, const QByteArray& d
     , m_data(data)
 {
 
-    QRegExp origRe("([^_]+)_(\\d+)"), newRe("([^_]+)_(\\d+)_(\\d+)_(\\d+)");
+    QRegExp origRe("([^-]+-[^-]+)-\\d+_\\d+_\\d+-(\\d+)"), newRe(origRe.pattern()+"-(\\d+)-(\\d+)");
 
     QString fname = QFileInfo(m_imgPath).baseName();
 
