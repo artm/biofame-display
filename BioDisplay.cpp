@@ -72,14 +72,6 @@ void BioDisplay::setupUI()
     m_matchPortrait = new QGraphicsPixmapItem(rectItem);
     m_matchPortrait->setOffset( -m_faceW/2, -m_faceH/2 );
 
-    // text
-    QFont fnt;
-    fnt.setPixelSize( h/12 );
-    m_caption = m_scene->addText( "", fnt );
-    m_caption->setDefaultTextColor(QColor(100,100,100));
-    m_caption->setTextWidth(w*2/3);
-    setCaption("Fifteen Minutes of Biometric Fame");
-
     // small portraits
     m_smallFaceH = m_vertSpace*3/4, m_smallFaceW = m_smallFaceH*2/3;
     int smallFaceMargin = (m_vertSpace-m_smallFaceH)/2;
@@ -93,6 +85,15 @@ void BioDisplay::setupUI()
         item->setOffset( -m_smallFaceW/2, -m_smallFaceH/2 );
         m_smallPortraits << item;
     }
+
+    // text
+    QFont fnt;
+    fnt.setPixelSize( m_vertSpace/4 );
+    m_caption = m_scene->addText( "", fnt );
+    m_caption->setDefaultTextColor(QColor(100,100,100));
+    m_caption->setTextWidth(w*2/3);
+    setCaption("Fifteen Minutes of Biometric Fame");
+
 }
 
 void BioDisplay::setCaption(const QString &text)

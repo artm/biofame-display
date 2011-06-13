@@ -35,20 +35,31 @@ public slots:
     void scrutinize(const QImage& image);
 
 private:
-    static QString slotName(const QString& path, int * num = 0);
-    void markSlot(const QString& imgPath); // increase slot use count
-    void saveToSlot( const QString& slot, QImage image, HNLTemplate tpl );
-    void saveTemplate( const QString& imgPath, const QString& tplPath, HNLTemplate tpl );
+    class FaceTemplate {
+    public:
+        typedef QSharedPointer<FaceTemplate> Ptr;
+        // parse existing img filename and attach loaded data
+        FaceTemplate( const QString& imgPath, const QByteArray& data );
+        // use extracted data and derive metadata from parent
+        FaceTemplate( const QByteArray& data, const Ptr parent );
+        const QByteArray& data() const { return m_data; }
+        const QString& imgPath() const { return m_imgPath; }
+        QStringList ancestors() const;
+        void save() const;
 
-    struct FaceTemplate {
-        QString m_imgPath, m_tplPath;
+        static QDir s_newFacesDir;
+
+    protected:
+        QString m_imgPath;
+        QString m_slot;
+        int m_parentId, m_id, m_gen;
         QByteArray m_data;
 
-        FaceTemplate(const QString& imgPath,
-                     const QString& tplPath,
-                     const QByteArray& data);
+        static QHash< QString, int > s_slotCounts; // how many images per slot?
     };
-    typedef QSharedPointer<FaceTemplate> FaceTemplatePtr;
+
+    void saveTemplate( const FaceTemplate::Ptr face );
+    QByteArray compressTemplate( HNLTemplate tpl );
 
     static QImage cropAroundFace(const QImage& orig, const QRect& face);
     static QString errorString(NResult result);
@@ -58,9 +69,7 @@ private:
 
     HNLExtractor m_extractor;
     HNMatcher m_matcher;
-    QList< FaceTemplatePtr > m_templates;
-    QHash< QString, int > m_slotCounts; // how many images per slot?
-    QDir m_newFacesDir;
+    QList< FaceTemplate::Ptr > m_templates;
 };
 
 
