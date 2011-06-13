@@ -280,10 +280,11 @@ void Verilook::scrutinize(const QImage &image)
     Q_ASSERT( isOk(NMIdentifyEnd(m_matcher)) );
 
     if (bestScore > 0) {
+        static QRegExp minUnder("[-_]");
         FaceTemplate::Ptr face(new FaceTemplate( compressTemplate(tpl), best ));
         cropped.save( face->imgPath() );
         saveTemplate( face );
-        emit identified( QString(face->slot()).replace('-',' '), face->ancestors() );
+        emit identified( QString(face->slot()).replace(minUnder ," "), face->ancestors() );
     } else
         emit noMatchFound();
 
