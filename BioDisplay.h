@@ -32,7 +32,7 @@ public slots:
     void setCaptionLoading() { setCaption("Loading database..."); }
     void setCaptionLoaded() { setCaption("Database loaded"); }
 
-    void showMatch(const QStringList& ancestors);
+    void showMatch(const QString& slot, const QStringList& ancestors);
     void showNoMatch();
 
 protected:

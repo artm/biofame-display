@@ -22,7 +22,7 @@ public:
 
 signals:
     void incomingFace(QImage face);
-    void identified(QStringList ancestorsTail);
+    void identified( QString slotName, QStringList ancestorsTail);
     void faceAdded(QString imgPath);
     void noMatchFound();
 
@@ -49,6 +49,7 @@ private:
         FaceTemplate( const QByteArray& data, const Ptr parent );
         const QByteArray& data() const { return m_data; }
         const QString& imgPath() const { return m_imgPath; }
+        const QString& slot() const { return m_slot; }
         QStringList ancestors() const;
         void save() const;
 

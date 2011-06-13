@@ -116,10 +116,8 @@ void BioDisplay::showNoMatch()
     m_rndPicTimer.stop();
 }
 
-void BioDisplay::showMatch(const QStringList& ancestors)
+void BioDisplay::showMatch( const QString& slot, const QStringList& ancestors )
 {
-    QString slot = transformName(ancestors[0]);
-
     setCaption("Identified as: " + slot);
     showPic(ancestors[0]);
 

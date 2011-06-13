@@ -15,8 +15,9 @@
     [x] show decoded slot name
     [x] delete the original incoming picture
 
-[ ] document the rationale behind FaceTemplatePtr
+[x] document the rationale behind FaceTemplatePtr
     to keep multiple collections of pointers to face templates and delete templates when all pointers are removed
+    - at the moment this is broken and FaceTemplate::Ptr is defined as FacePointer*
 
 [x] naming scheme
     [x] the new images should be named as:
@@ -26,10 +27,11 @@
     [x] Verilook::saveToSlot() should accept parent template and derive gen from it (as well as access its slot name)
         May be even template should have its "derive child" or something API
 
-[ ] display
-    [ ] should show the 'inheritance' chain
-    [ ] for that to work 'matchFound' signal should wrap and send the chain
+[x] display
+    [x] should show the 'inheritance' chain ('ancestry')
+    [x] for that to work 'matchFound' signal should wrap and send the chain
     [ ] this means display doesn't have to know about slots after all
+        - should receive slot name via signal as well
 
 [ ] matching order
     [ ] first - new images in reverse chronological order

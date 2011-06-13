@@ -283,7 +283,7 @@ void Verilook::scrutinize(const QImage &image)
         FaceTemplate::Ptr face(new FaceTemplate( compressTemplate(tpl), best ));
         cropped.save( face->imgPath() );
         saveTemplate( face );
-        emit identified( face->ancestors() );
+        emit identified( QString(face->slot()).replace('-',' '), face->ancestors() );
     } else
         emit noMatchFound();
 
