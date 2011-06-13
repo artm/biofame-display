@@ -40,7 +40,6 @@ protected:
     void setupTimers();
     void setupBiometricThread();
     void searchAnimation();
-    static QString transformName(const QString& cadabra);
 
     QGraphicsView * m_view;
     QGraphicsScene * m_scene;
@@ -49,7 +48,7 @@ protected:
     QGraphicsTextItem * m_caption;
     QList<QGraphicsPixmapItem*> m_smallPortraits;
     int m_faceW, m_faceH, m_vertSpace, m_smallFaceH, m_smallFaceW;
-    QHash<QString, QStringList> m_slots;
+    QList<QString> m_allFiles;
     QTimer m_rndPicTimer;
     BiometricThread * m_bioThread;
 };

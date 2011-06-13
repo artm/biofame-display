@@ -139,7 +139,7 @@ void BioDisplay::setupTimers()
 
 void BioDisplay::showRndPic()
 {
-    showPic( random( random( m_slots ) ) );
+    showPic( random( m_allFiles ) );
 }
 
 void BioDisplay::showPic(const QString &path)
@@ -178,13 +178,6 @@ void BioDisplay::setupBiometricThread()
 
 void BioDisplay::addImagePath(QString path)
 {
-    QString slot = transformName(path);
-    m_slots[slot] << path;
-}
-
-QString BioDisplay::transformName(const QString &cadabra)
-{
-    QRegExp pattern("(\\d+$|_+)");
-    return QString(QFileInfo(cadabra).baseName()).remove(pattern).replace("-"," ");
+    m_allFiles << path;
 }
 
