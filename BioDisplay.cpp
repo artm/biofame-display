@@ -118,8 +118,10 @@ void BioDisplay::showNoMatch()
 
 void BioDisplay::showMatch( const QString& slot, const QStringList& ancestors )
 {
-    setCaption("Identified as: " + slot);
-    showPic(ancestors[0]);
+    setCaption(slot);
+
+    Q_ASSERT(ancestors.size()>1);
+    showPic(ancestors[1]);
 
     // show the rest of the slot...
     int i = 0;
