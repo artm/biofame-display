@@ -16,6 +16,7 @@ const char * s_defaultServer = "/local";
 const char * s_licenseList = "SingleComputerLicense:VLExtractor,SingleComputerLicense:VLMatcher";
 
 QHash< QString, int > Verilook::FaceTemplate::s_slotCounts; // how many images per slot?
+QHash< QString, QHash< int, Verilook::FaceTemplate::Ptr> > Verilook::FaceTemplate::s_slots;
 QDir Verilook::FaceTemplate::s_newFacesDir;
 
 class GrayTable : public QVector<QRgb> {
@@ -181,7 +182,7 @@ void Verilook::addDbFace(const QString& imgPath)
         // load from file
         QFile tplFile(tplPath);
         tplFile.open(QFile::ReadOnly);
-        m_templates.push_front(FaceTemplate::Ptr( new FaceTemplate(imgPath, tplFile.readAll())));
+        m_templates.push_front(FaceTemplate::Ptr(new FaceTemplate(imgPath, tplFile.readAll())));
         emit faceAdded(imgPath);
     } else {
         HNImage image, greyscale;
@@ -282,7 +283,7 @@ void Verilook::scrutinize(const QImage &image)
         FaceTemplate::Ptr face(new FaceTemplate( compressTemplate(tpl), best ));
         cropped.save( face->imgPath() );
         saveTemplate( face );
-        emit identified( face->imgPath() );
+        emit identified( face->ancestors() );
     } else
         emit noMatchFound();
 
@@ -319,6 +320,7 @@ Verilook::FaceTemplate::FaceTemplate(const QString& imgPath, const QByteArray& d
     if (!s_slotCounts.contains(m_slot) || (s_slotCounts[m_slot] < m_id))
         s_slotCounts[m_slot]=m_id;
 
+    s_slots[m_slot][m_id] = Ptr(this);
 }
 
 Verilook::FaceTemplate::FaceTemplate( const QByteArray& data, const Ptr parent )
@@ -327,8 +329,9 @@ Verilook::FaceTemplate::FaceTemplate( const QByteArray& data, const Ptr parent )
     m_slot = parent->m_slot;
     m_parentId = parent->m_id;
     m_gen = parent->m_gen + 1;
-    m_id = s_slotCounts[m_slot]++;
+    m_id = ++s_slotCounts[m_slot];
     m_imgPath = s_newFacesDir.filePath( QString("%1_%2_%3_%4.jpg").arg(m_slot).arg(m_parentId).arg(m_gen).arg(m_id) );
+    s_slots[m_slot][m_id] = Ptr(this);
 }
 
 
@@ -381,6 +384,16 @@ void Verilook::FaceTemplate::save() const
     QFile tplFile(tplPath);
     tplFile.open(QFile::WriteOnly);
     tplFile.write( m_data );
+}
 
+QStringList Verilook::FaceTemplate::ancestors() const
+{
+    QStringList lst;
+    lst << m_imgPath;
+
+    // now follow the ancestors tail...
+    if (s_slots.contains(m_slot) && s_slots[m_slot].contains(m_parentId))
+        lst.append( s_slots[m_slot][m_parentId]->ancestors() );
+    return lst;
 }
 

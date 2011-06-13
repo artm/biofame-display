@@ -22,7 +22,7 @@ public:
 
 signals:
     void incomingFace(QImage face);
-    void identified(QString imgPath);
+    void identified(QStringList ancestorsTail);
     void faceAdded(QString imgPath);
     void noMatchFound();
 
@@ -37,7 +37,12 @@ public slots:
 private:
     class FaceTemplate {
     public:
-        typedef QSharedPointer<FaceTemplate> Ptr;
+        // FIXME: if we ever are to remove face templates on the fly
+        // this has to be restored. Now it causes double free-ing of the pointer
+        // (at exit, the only time face templates are destroyed at the moment)
+        //typedef QSharedPointer<FaceTemplate> Ptr;
+        typedef FaceTemplate * Ptr;
+
         // parse existing img filename and attach loaded data
         FaceTemplate( const QString& imgPath, const QByteArray& data );
         // use extracted data and derive metadata from parent
@@ -56,6 +61,7 @@ private:
         QByteArray m_data;
 
         static QHash< QString, int > s_slotCounts; // how many images per slot?
+        static QHash< QString, QHash< int, Ptr> > s_slots;
     };
 
     void saveTemplate( const FaceTemplate::Ptr face );

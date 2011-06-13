@@ -16,6 +16,7 @@
     [x] delete the original incoming picture
 
 [ ] document the rationale behind FaceTemplatePtr
+    to keep multiple collections of pointers to face templates and delete templates when all pointers are removed
 
 [x] naming scheme
     [x] the new images should be named as:

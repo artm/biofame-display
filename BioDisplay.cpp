@@ -116,15 +116,16 @@ void BioDisplay::showNoMatch()
     m_rndPicTimer.stop();
 }
 
-void BioDisplay::showMatch(const QString &imgPath)
+void BioDisplay::showMatch(const QStringList& ancestors)
 {
-    QString slot = transformName(imgPath);
+    QString slot = transformName(ancestors[0]);
+
     setCaption("Identified as: " + slot);
-    showPic(imgPath);
+    showPic(ancestors[0]);
 
     // show the rest of the slot...
     int i = 0;
-    foreach(QString path, m_slots[slot]) {
+    foreach(QString path, ancestors) {
         showSmallPic(path,i++);
     }
 
