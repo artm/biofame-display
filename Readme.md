@@ -37,3 +37,9 @@
     [ ] first - new images in reverse chronological order
     [ ] next - originals in no particular order
 
+[ ] correct filename pattern:
+    tag-lang-date-number
+    each component may contain underscores except the last one
+    [ ] on display convert - AMD _ to spaces
+
+[ ] progress report when loading database...
