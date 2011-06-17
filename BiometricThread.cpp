@@ -5,6 +5,7 @@
 #include <QFileSystemWatcher>
 #include <QApplication>
 #include <QDebug>
+#include <QTime>
 
 BiometricThread::BiometricThread(QObject *parent)
     : QThread(parent)
@@ -66,15 +67,16 @@ void BiometricThread::loadDb(const QString& path)
     emit dirReadStarted();
     QFileInfoList lst = dbdir.entryInfoList(QStringList() << "*.jpg",QDir::Files);
     emit dirReadDone();
-    int total = lst.size(), i = 0, j = 0;
-    int updateEvery = total / 1000;
-
+    int total = lst.size(), i = 0;
+    QTime stopwatch;
+    stopwatch.start();
     foreach(QFileInfo fi, lst) {
         m_verilook->addDbFace(fi.filePath());
 
         ++i;
-        if (++j > updateEvery) {
-            j = 0;
+
+        if (stopwatch.elapsed() > 50) {
+            stopwatch.restart();
             double progress = 100.0 * i / total;
             emit print( QString("Loading database... %1%").arg(progress,5,'f',1) );
             QApplication::processEvents();
