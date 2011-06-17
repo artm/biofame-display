@@ -18,11 +18,12 @@ public:
     explicit Verilook(QObject * parent);
     virtual ~Verilook();
     void findFaces(const QImage& frame, QList<QRect>& faces);
+    bool findFace( const QImage& frame, QRect& face );
     void setNewFacesDir(const QString& path);
 
 signals:
     void incomingFace(QImage face);
-    void identified( QString slotName, QStringList ancestorsTail);
+    void identified( QString slotName, QList<QImage> ancestors);
     void faceAdded(QString imgPath);
     void noMatchFound();
 

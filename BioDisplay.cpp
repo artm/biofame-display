@@ -117,17 +117,17 @@ void BioDisplay::showNoMatch()
     m_rndPicTimer.stop();
 }
 
-void BioDisplay::showMatch( const QString& slot, const QStringList& ancestors )
+void BioDisplay::showMatch( const QString& slot, const QList<QImage>& faces )
 {
     setCaption(slot);
 
-    Q_ASSERT(ancestors.size()>1);
-    showPic(ancestors[1]);
+    Q_ASSERT(faces.size()>1);
+    showPic(QPixmap::fromImage(faces[1]));
 
     // show the rest of the slot...
     int i = 0;
-    foreach(QString path, ancestors) {
-        showSmallPic(path,i++);
+    foreach(QImage face, faces) {
+        showSmallPic(QPixmap::fromImage(face), i++);
     }
 
     m_rndPicTimer.stop();
@@ -148,19 +148,20 @@ void BioDisplay::showRndPic()
     showPic( random( m_allFiles ) );
 }
 
-void BioDisplay::showPic(const QString &path)
+void BioDisplay::showPic(const QPixmap& pic)
 {
-    QPixmap pic( path );
     m_matchPortrait->setPixmap(pic.scaled(m_faceW,m_faceH));
 }
 
-bool BioDisplay::showSmallPic(const QString &path, int i)
+void BioDisplay::showPic(const QString &path)
+{
+    showPic(QPixmap( path ));
+}
+
+bool BioDisplay::showSmallPic(const QPixmap &image, int i)
 {
     if (i >= m_smallPortraits.size()) return false;
-
-    QPixmap pic( path );
-    QGraphicsPixmapItem * item = m_smallPortraits[i];
-    item->setPixmap(pic.scaled(m_smallFaceW,m_smallFaceH));
+    m_smallPortraits[i]->setPixmap( image.scaled(m_smallFaceW,m_smallFaceH) );
     return true;
 }
 

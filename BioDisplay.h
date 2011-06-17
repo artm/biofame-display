@@ -24,15 +24,17 @@ public:
 
 public slots:
     void showPic(const QString& path);
+    void showPic(const QPixmap& pic);
+
     void showRndPic();
-    bool showSmallPic(const QString &path, int i);
+    bool showSmallPic(const QPixmap &image, int i);
     void incomingFace(QImage face);
     void addImagePath(QString path);
     void setCaption(const QString& text);
     void setCaptionLoading() { setCaption("Loading database..."); }
     void setCaptionLoaded() { setCaption("Database loaded"); }
 
-    void showMatch(const QString& slot, const QStringList& ancestors);
+    void showMatch(const QString& slot, const QList<QImage>& faces);
     void showNoMatch();
     void textBlink(); // blink ... to fake progress
 

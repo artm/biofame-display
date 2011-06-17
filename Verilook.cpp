@@ -144,6 +144,30 @@ void Verilook::findFaces(const QImage& frame, QList<QRect>& faces)
     qSort(faces.begin(), faces.end(), larger);
 }
 
+bool Verilook::findFace(const QImage &frame, QRect &face)
+{
+    Q_ASSERT( m_extractor );
+    QImage greyFrame = toGrayScale(frame);
+    HNImage greyImage;
+    Q_ASSERT( isOk( NImageCreateWrapper(
+                        npfGrayscale,
+                        greyFrame.width(), greyFrame.height(), greyFrame.bytesPerLine(),
+                        0.0, 0.0, (void*)greyFrame.bits(), NFalse, &greyImage),
+                    "Coudn't wrap matrix for verilook") );
+
+    NBool detected;
+    NleFace vface;
+    NleDetectFace( m_extractor, greyImage, &detected, &vface );
+    if (detected)
+        face = QRect(vface.Rectangle.X,
+                     vface.Rectangle.Y,
+                     vface.Rectangle.Width,
+                     vface.Rectangle.Height);
+    return (bool)detected;
+}
+
+
+
 void Verilook::setMinIOD(int value)
 {
     if (!m_extractor) return;
@@ -286,7 +310,16 @@ void Verilook::scrutinize(const QImage &image)
         FaceTemplate::Ptr face(new FaceTemplate( compressTemplate(tpl), best ));
         cropped.save( face->imgPath() );
         saveTemplate( face );
-        emit identified( QString(face->slot()).replace(minUnder ," "), face->ancestors() );
+
+        QStringList ancestorNames = face->ancestors();
+        QList<QImage> ancestorFaces;
+        foreach(QString name, ancestorNames ) {
+            QImage orig(name);
+            QRect face;
+            ancestorFaces << (findFace(orig,face) ? cropAroundFace(orig, face) : orig);
+        }
+
+        emit identified( QString(face->slot()).replace(minUnder ," "), ancestorFaces );
     } else
         emit noMatchFound();
 

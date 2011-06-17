@@ -21,6 +21,10 @@
 [x] more filetypes: .gif, .png
 
 [ ] crop database images (when?)
+    [ ] the problem with cropping is that we show them in main thread, but the extractor "belongs" in biometric thread.
+    we could assume, that by the time cropping is requested the extractor isn't used by the biometrics, but eventually this
+    ass-umption would bite us in the ass. The simplest is to crop in biometric thread and communicate the cropped faces via
+    signal.
 
 [ ] make crop show less black borders (check if crop hight is larger then orig image)
 
