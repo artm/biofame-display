@@ -7,6 +7,8 @@
 #include <QDebug>
 #include <QTime>
 
+QStringList BiometricThread::s_supportedImageTypes( QStringList() << "*.jpg" << "*.png" << "*.gif" );
+
 BiometricThread::BiometricThread(QObject *parent)
     : QThread(parent)
 {
@@ -39,7 +41,8 @@ BiometricThread::BiometricThread(QObject *parent)
 void BiometricThread::incomingFile()
 {
     // maybe load
-    QStringList allJpegs = m_incomingDir.entryList(QStringList()<<"*.jpg",QDir::Files,QDir::Time|QDir::Reversed);
+    // we only look for jpegs here, since the robot will send a jpeg
+    QStringList allJpegs = m_incomingDir.entryList(QStringList() << "*.jpg",QDir::Files,QDir::Time|QDir::Reversed);
     if (allJpegs.size()>0) {
         QImage incoming(m_incomingDir.filePath(allJpegs[0]));
         qDebug() << "Scrutinizing:" << allJpegs[0];
@@ -65,7 +68,7 @@ void BiometricThread::loadDb(const QString& path)
     Q_ASSERT(dbdir.exists());
 
     emit dirReadStarted();
-    QFileInfoList lst = dbdir.entryInfoList(QStringList() << "*.jpg",QDir::Files);
+    QFileInfoList lst = dbdir.entryInfoList(s_supportedImageTypes,QDir::Files);
     emit dirReadDone();
     int total = lst.size(), i = 0;
     QTime stopwatch;

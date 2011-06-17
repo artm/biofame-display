@@ -333,6 +333,7 @@ Verilook::FaceTemplate::FaceTemplate( const QByteArray& data, const Ptr parent )
     m_parentId = parent->m_id;
     m_gen = parent->m_gen + 1;
     m_id = ++s_slotCounts[m_slot];
+    // new image will always be saved as jpg
     m_imgPath = s_newFacesDir.filePath( QString("%1-%2-%3-%4.jpg").arg(m_slot).arg(m_parentId).arg(m_gen).arg(m_id) );
     s_slots[m_slot][m_id] = Ptr(this);
 }

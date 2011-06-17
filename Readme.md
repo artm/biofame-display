@@ -17,8 +17,8 @@
 
 [ ] !!! check if new templates are freed after compression !!!
 
-[ ] if can't make template for DB image - rename it to xxx.jpg.broken
-[ ] more filetypes: .gif, .png
+[x] if can't make template for DB image - rename it to xxx.jpg.broken
+[x] more filetypes: .gif, .png
 
 [ ] crop database images (when?)
 

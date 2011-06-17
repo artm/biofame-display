@@ -4,6 +4,7 @@
 #include <QThread>
 #include <QDir>
 #include <QImage>
+#include <QStringList>
 
 class QFileSystemWatcher;
 class Verilook;
@@ -33,6 +34,8 @@ protected:
     Verilook * m_verilook;
     QFileSystemWatcher * m_watcher;
     QDir m_root, m_incomingDir;
+
+    static QStringList s_supportedImageTypes;
 };
 
 #endif // BIOMETRICTHREAD_H
