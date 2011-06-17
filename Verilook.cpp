@@ -182,7 +182,7 @@ void Verilook::addDbFace(const QString& imgPath)
         // load from file
         QFile tplFile(tplPath);
         tplFile.open(QFile::ReadOnly);
-        m_templates.push_front(FaceTemplate::Ptr(new FaceTemplate(imgPath, tplFile.readAll())));
+        m_templates.push_back(FaceTemplate::Ptr(new FaceTemplate(imgPath, tplFile.readAll())));
         emit faceAdded(imgPath);
     } else {
         HNImage image, greyscale;
@@ -353,7 +353,7 @@ QImage Verilook::cropAroundFace(const QImage &orig, const QRect &face)
 void Verilook::saveTemplate( const FaceTemplate::Ptr face )
 {
     face->save();
-    m_templates.push_front( face );
+    m_templates.push_back( face );
     emit faceAdded( face->imgPath() );
 }
 

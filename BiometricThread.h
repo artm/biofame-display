@@ -16,6 +16,8 @@ public:
 
 signals:
     void incomingFace(QImage croppedFace);
+    void dirReadStarted();
+    void dirReadDone();
     void loadDbStarted();
     void loadDbFinished();
     void print(QString message);

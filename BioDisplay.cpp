@@ -11,6 +11,7 @@
 #include <QApplication>
 #include <QTimer>
 #include <QFileSystemWatcher>
+#include <QRegExp>
 
 template<class X>
 X random(QList<X> lst)
@@ -136,7 +137,10 @@ void BioDisplay::showMatch( const QString& slot, const QStringList& ancestors )
 void BioDisplay::setupTimers()
 {
     m_rndPicTimer.setInterval(50);
-    Q_ASSERT( connect(&m_rndPicTimer, SIGNAL(timeout()), this, SLOT(showRndPic())) );
+    Q_ASSERT( connect(&m_rndPicTimer, SIGNAL(timeout()), SLOT(showRndPic())) );
+
+    m_textBlinkTimer.setInterval(250);
+    Q_ASSERT( connect(&m_textBlinkTimer, SIGNAL(timeout()), SLOT(textBlink())) );
 }
 
 void BioDisplay::showRndPic()
@@ -172,8 +176,12 @@ void BioDisplay::setupBiometricThread()
     m_bioThread = new BiometricThread(this);
 
     Q_ASSERT( connect( m_bioThread, SIGNAL(incomingFace(QImage)), SLOT(incomingFace(QImage)) ) );
-    Q_ASSERT( connect( m_bioThread, SIGNAL(loadDbStarted()), SLOT(setCaptionLoading())) );
+    // Q_ASSERT( connect( m_bioThread, SIGNAL(loadDbStarted()), SLOT(setCaptionLoading())) );
+    Q_ASSERT( connect( m_bioThread, SIGNAL(dirReadStarted()), SLOT(setCaptionLoading())) );
+    Q_ASSERT( connect( m_bioThread, SIGNAL(dirReadStarted()), &m_textBlinkTimer, SLOT(start())) );
     Q_ASSERT( connect( m_bioThread, SIGNAL(loadDbFinished()), SLOT(setCaptionLoaded())) );
+    Q_ASSERT( connect( m_bioThread, SIGNAL(dirReadDone()), &m_textBlinkTimer, SLOT(stop())) );
+    Q_ASSERT( connect( m_bioThread, SIGNAL(print(QString)), SLOT(setCaption(QString))));
 
     m_bioThread->start();
 }
@@ -181,5 +189,21 @@ void BioDisplay::setupBiometricThread()
 void BioDisplay::addImagePath(QString path)
 {
     m_allFiles << path;
+}
+
+void BioDisplay::textBlink()
+{
+    QString caption = m_caption->toPlainText();
+    QRegExp dots("\\.*$");
+    Q_ASSERT( dots.indexIn(caption) > -1 );
+    int numDots = (dots.matchedLength() + 1) % 4;
+
+    // this doesn't do what I expect...
+    // caption.replace(dots, QString(numDots, '.'));
+    // ... which is:
+    caption.remove(dots);
+    caption += QString(numDots, '.');
+
+    setCaption(caption);
 }
 

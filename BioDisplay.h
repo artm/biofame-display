@@ -34,6 +34,7 @@ public slots:
 
     void showMatch(const QString& slot, const QStringList& ancestors);
     void showNoMatch();
+    void textBlink(); // blink ... to fake progress
 
 protected:
     void setupUI();
@@ -49,7 +50,7 @@ protected:
     QList<QGraphicsPixmapItem*> m_smallPortraits;
     int m_faceW, m_faceH, m_vertSpace, m_smallFaceH, m_smallFaceW;
     QList<QString> m_allFiles;
-    QTimer m_rndPicTimer;
+    QTimer m_rndPicTimer, m_textBlinkTimer;
     BiometricThread * m_bioThread;
 };
 

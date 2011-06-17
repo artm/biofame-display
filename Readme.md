@@ -15,10 +15,10 @@
 [-] matching order
     - doesn't matter: the whole database is matched in under a second
 
-[ ] progress report when loading database...
-    [ ] blink at start up - while reading the directory
+[ ] !!! check if new templates are freed after compression !!!
+
 [ ] if can't make template for DB image - rename it to xxx.jpg.broken
-[ ] check if other image types are present
+[ ] more filetypes: .gif, .png
 
 [ ] crop database images (when?)
 

@@ -23,8 +23,6 @@ BiometricThread::BiometricThread(QObject *parent)
     Q_ASSERT( connect(m_verilook, SIGNAL(identified(QString, QStringList)), parent, SLOT(showMatch(QString, QStringList))) );
     Q_ASSERT( connect( m_verilook, SIGNAL(faceAdded(QString)), parent, SLOT(addImagePath(QString)) ) );
 
-    Q_ASSERT( connect(this, SIGNAL(print(QString)), parent, SLOT(setCaption(QString))));
-
     QString incomingPath = m_root.filePath("incoming");
     m_incomingDir = QDir(incomingPath);
     foreach(QString p, m_incomingDir.entryList(QDir::Files)) {
@@ -54,8 +52,8 @@ void BiometricThread::incomingFile()
 void BiometricThread::run()
 {
     emit loadDbStarted();
-    loadDb(m_root.filePath("orig"));
     loadDb(m_root.filePath("new"));
+    loadDb(m_root.filePath("orig"));
     emit loadDbFinished();
     exec();
 }
@@ -65,7 +63,9 @@ void BiometricThread::loadDb(const QString& path)
     QDir dbdir(path);
     Q_ASSERT(dbdir.exists());
 
+    emit dirReadStarted();
     QFileInfoList lst = dbdir.entryInfoList(QStringList() << "*.jpg",QDir::Files);
+    emit dirReadDone();
     int total = lst.size(), i = 0, j = 0;
     int updateEvery = total / 1000;
 
