@@ -211,6 +211,8 @@ void Verilook::addDbFace(const QString& imgPath)
                 } else {
                     if (tpl != 0)
                         qWarning("Leaking a templ that allegedly wasn't loaded");
+                    // Can't create template: rename this file so it doesn't bother us anymore
+                    QFile(imgPath).rename(imgPath + ".broken");
                 }
                 NImageFree(greyscale);
             }
