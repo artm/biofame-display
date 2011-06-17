@@ -6,19 +6,28 @@
 
 ## TODO lists
 
-[ ] matching order
-    [ ] first - new images in reverse chronological order
-    [ ] next - originals in no particular order
+[?] watch without help from OS
+    - started to work suddenly
+    [ ] test with the robot / adhoc network
+    [ ] share Faces to guests
+[ ] on the other side: upload to tmp/bla.jpg then mv to incoming/bla.jpg
+
+[-] matching order
+    - doesn't matter: the whole database is matched in under a second
 
 [ ] progress report when loading database...
     [ ] blink at start up - while reading the directory
 [ ] if can't make template for DB image - rename it to xxx.jpg.broken
 [ ] check if other image types are present
 
-[ ] Limit the loaded database to:
-    [ ] all originals
-    [ ] N freshest news (e.g. twice as much)
-
 [ ] crop database images (when?)
 
 [ ] make crop show less black borders (check if crop hight is larger then orig image)
+
+[ ] animation
+
+[ ] daily maintainance script (on startup):
+    [ ] log rotate, compress old logs
+    [ ] probably kill the oldest pictures / templates in Faces/new
+    [ ] also for the robot
+
