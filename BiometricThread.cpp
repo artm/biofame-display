@@ -34,18 +34,21 @@ BiometricThread::BiometricThread(QObject *parent)
 
     m_watcher = new QFileSystemWatcher(this);
     m_watcher->addPath(incomingPath);
-    Q_ASSERT( connect(m_watcher, SIGNAL(directoryChanged(QString)), SLOT(incomingFile())) );
+    Q_ASSERT( connect(m_watcher, SIGNAL(directoryChanged(QString)), SLOT(onDirChanges())) );
 }
 
 
-void BiometricThread::incomingFile()
+void BiometricThread::onDirChanges()
 {
     // maybe load
     // we only look for jpegs here, since the robot will send a jpeg
     QStringList allJpegs = m_incomingDir.entryList(QStringList() << "*.jpg",QDir::Files,QDir::Time|QDir::Reversed);
     if (allJpegs.size()>0) {
         QImage incoming(m_incomingDir.filePath(allJpegs[0]));
-        qDebug() << "Scrutinizing:" << allJpegs[0];
+
+        // somehow this breaks it
+        // if (incoming.isNull()) return;
+
         m_verilook->scrutinize( incoming );
         foreach(QString jpg, allJpegs) {
             m_incomingDir.remove(jpg);

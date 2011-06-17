@@ -24,7 +24,7 @@ signals:
     void print(QString message);
 
 public slots:
-    void incomingFile();
+    void onDirChanges();
 
 protected:
     virtual void run();
