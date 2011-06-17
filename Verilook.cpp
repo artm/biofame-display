@@ -42,6 +42,11 @@ QImage toGrayScale(const QImage& img)
     return gray;
 }
 
+template<class T>
+T clamp(T mi, T v, T MA) {
+    return std::max( mi, std::min( MA, v) );
+}
+
 Verilook::Verilook(QObject * parent)
     : QThread(parent)
     , m_extractor(0), m_matcher(0)
@@ -380,10 +385,15 @@ void Verilook::setNewFacesDir(const QString &path)
 
 QImage Verilook::cropAroundFace(const QImage &orig, const QRect &face)
 {
-    int w = Bio::CROP_WIDTH_SCALE * face.width(), h = Bio::CROP_RATIO * w;
-    int dw = w - face.width(), dh = h - face.height();
+    int w = std::min( orig.width(), (int)(Bio::CROP_WIDTH_SCALE * face.width()) ), h = Bio::CROP_RATIO * w;
 
-    return orig.copy( face.x()-dw/2, face.y()-dh/2, w, h );
+    if (h > orig.height()) {
+        w = w * orig.height() / h;
+        h = orig.height();
+    }
+
+    int dw = w - face.width(), dh = h - face.height();    
+    return orig.copy( clamp(0, face.x()-dw/2, orig.width() - w), clamp(0, face.y()-dh/2, orig.height() - h), w, h );
 }
 
 void Verilook::saveTemplate( const FaceTemplate::Ptr face )
