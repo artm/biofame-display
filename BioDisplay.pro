@@ -17,11 +17,13 @@ HEADERS  += BioDisplay.h \
     LogHub.h
 
 OTHER_FILES += \
-    Readme.md
+    Readme.md \
+    deploy-display.sh
 
 INCLUDEPATH += /Users/artm/src/SDK/VeriLook_4_0_Standard_SDK/include/MacOSX
 LIBS += -L/Library/Frameworks/Neurotechnology
 LIBS += -lNExtractors -lNMatchers -lNTemplates -lNCore -lNImages -lNLicensing
+
 
 
 
