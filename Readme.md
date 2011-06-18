@@ -10,14 +10,10 @@
     - started to work suddenly
     [ ] test with the robot / adhoc network
     [ ] share Faces to guests
-[ ] on the other side: upload to tmp/bla.jpg then mv to incoming/bla.jpg
+[ ] on the robot: upload to tmp/bla.jpg then mv to incoming/bla.jpg
 
 [-] matching order
     - doesn't matter: the whole database is matched in under a second
-
-[ ] !!! check if new templates are freed after compression !!!
-
-[ ] make crop show less black borders (check if crop hight is larger then orig image)
 
 [ ] animation
 
@@ -26,3 +22,5 @@
     [ ] probably kill the oldest pictures / templates in Faces/new
     [ ] also for the robot
 
+[ ] clear small faces when new ancestry is loaded
+[ ] dates under large faces
