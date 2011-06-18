@@ -23,7 +23,8 @@ BiometricThread::BiometricThread(QObject *parent)
     // retransmit incoming face signal
     Q_ASSERT( connect(m_verilook, SIGNAL(incomingFace(QImage)), parent, SLOT(incomingFace(QImage))) );
     Q_ASSERT( connect(m_verilook, SIGNAL(noMatchFound()), parent, SLOT(showNoMatch())) );
-    Q_ASSERT( connect(m_verilook, SIGNAL(identified(QString, QList<QImage>)), parent, SLOT(showMatch(QString, QList<QImage>))) );
+    Q_ASSERT( connect(m_verilook, SIGNAL(identified(QString, QList<Bio::Portrait>)), parent,
+                      SLOT(showMatch(QString, QList<Bio::Portrait>))) );
     Q_ASSERT( connect( m_verilook, SIGNAL(faceAdded(QString)), parent, SLOT(addImagePath(QString)) ) );
 
     QString incomingPath = m_root.filePath("incoming");

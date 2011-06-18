@@ -8,6 +8,8 @@
 #include <QDir>
 #include <QHash>
 
+#include "CommonTypes.h"
+
 class QGraphicsView;
 class QGraphicsScene;
 class QGraphicsTextItem;
@@ -34,7 +36,7 @@ public slots:
     void setCaptionLoading() { setCaption("Loading database..."); }
     void setCaptionLoaded() { setCaption("Database loaded"); }
 
-    void showMatch(const QString& slot, const QList<QImage>& faces);
+    void showMatch(const QString& slot, const QList<Bio::Portrait>& faces);
     void showNoMatch();
     void textBlink(); // blink ... to fake progress
 
@@ -48,7 +50,7 @@ protected:
     QGraphicsScene * m_scene;
     QGraphicsPixmapItem * m_currentPortrait;
     QGraphicsPixmapItem * m_matchPortrait;
-    QGraphicsTextItem * m_caption;
+    QGraphicsTextItem * m_caption, * m_currentStamp, * m_matchStamp;
     QList<QGraphicsPixmapItem*> m_smallPortraits;
     int m_faceW, m_faceH, m_vertSpace, m_smallFaceH, m_smallFaceW;
     QList<QString> m_allFiles;

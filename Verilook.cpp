@@ -317,11 +317,16 @@ void Verilook::scrutinize(const QImage &image)
         saveTemplate( face );
 
         QStringList ancestorNames = face->ancestors();
-        QList<QImage> ancestorFaces;
+        QList<Portrait> ancestorFaces;
         foreach(QString name, ancestorNames ) {
             QImage orig(name);
             QRect face;
-            ancestorFaces << (findFace(orig,face) ? cropAroundFace(orig, face) : orig);
+
+            Portrait p;
+            p.image = (findFace(orig,face) ? cropAroundFace(orig, face) : orig);
+            p.timestamp = QFileInfo(name).created();
+
+            ancestorFaces << p;
         }
 
         emit identified( QString(face->slot()).replace(minUnder ," "), ancestorFaces );

@@ -23,4 +23,5 @@
     [ ] also for the robot
 
 [ ] clear small faces when new ancestry is loaded
-[ ] dates under large faces
+    - part of animation
+

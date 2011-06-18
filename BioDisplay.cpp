@@ -95,6 +95,18 @@ void BioDisplay::setupUI()
     m_caption->setTextWidth(w*2/3);
     setCaption("Fifteen Minutes of Biometric Fame");
 
+    fnt.setPixelSize( m_vertSpace/8 );
+    m_currentStamp = m_scene->addText("", fnt);
+    m_currentStamp->setX( m_currentPortrait->parentItem()->x() );
+    m_matchStamp = m_scene->addText("", fnt);
+    m_matchStamp->setX( m_matchPortrait->parentItem()->x() );
+    QList<QGraphicsTextItem*> lst = QList<QGraphicsTextItem*>() << m_currentStamp << m_matchStamp;
+    foreach(QGraphicsTextItem* item, lst) {
+        item->setDefaultTextColor(QColor(150,150,150));
+        item->setTextWidth( m_faceW * 3 / 2 );
+        item->setX( item->x() - item->textWidth()/2 );
+        item->setY( m_currentPortrait->parentItem()->y() + m_faceH*2/5  );
+    }
 }
 
 void BioDisplay::setCaption(const QString &text)
@@ -117,17 +129,21 @@ void BioDisplay::showNoMatch()
     m_rndPicTimer.stop();
 }
 
-void BioDisplay::showMatch( const QString& slot, const QList<QImage>& faces )
+void BioDisplay::showMatch( const QString& slot, const QList<Bio::Portrait>& faces )
 {
+    QString timeFormat = "yyyy-MM-dd hh:mm";
+
     setCaption(slot);
+    m_currentStamp->setHtml(QString("<center>%1</center>").arg(QDateTime::currentDateTime().toString((timeFormat))));
 
     Q_ASSERT(faces.size()>1);
-    showPic(QPixmap::fromImage(faces[1]));
+    showPic(QPixmap::fromImage(faces[1].image));
+    m_matchStamp->setHtml(QString("<center>%1</center>").arg(faces[1].timestamp.toString(timeFormat)));
 
     // show the rest of the slot...
     int i = 0;
-    foreach(QImage face, faces) {
-        showSmallPic(QPixmap::fromImage(face), i++);
+    foreach(Bio::Portrait face, faces) {
+        showSmallPic(QPixmap::fromImage(face.image), i++);
     }
 
     m_rndPicTimer.stop();

@@ -12,6 +12,8 @@
 #include <NLicensing.h>
 #include <NMatcher.h>
 
+#include "CommonTypes.h"
+
 class Verilook : public QThread {
     Q_OBJECT
 public:
@@ -23,7 +25,7 @@ public:
 
 signals:
     void incomingFace(QImage face);
-    void identified( QString slotName, QList<QImage> ancestors);
+    void identified( QString slotName, QList<Bio::Portrait> ancestors);
     void faceAdded(QString imgPath);
     void noMatchFound();
 
