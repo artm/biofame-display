@@ -18,28 +18,11 @@ HEADERS  += BioDisplay.h \
 
 OTHER_FILES += \
     Readme.md \
-    deploy-display.sh
+    deploy-display.sh \
+    BioDisplay.icns
 
 INCLUDEPATH += /Users/artm/src/SDK/VeriLook_4_0_Standard_SDK/include/MacOSX
 LIBS += -L/Library/Frameworks/Neurotechnology
 LIBS += -lNExtractors -lNMatchers -lNTemplates -lNCore -lNImages -lNLicensing
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+mac:ICON=BioDisplay.icns
