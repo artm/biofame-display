@@ -61,60 +61,66 @@ void BioDisplay::setupUI()
     int w = width(), h = height();
     m_faceH = h/2, m_faceW = m_faceH / Bio::CROP_RATIO;
     m_vertSpace = h/2 - m_faceH/2;
-    int hgap = (w - 2*m_faceW)/3;
+    int hmargin = (w - h*4/3)/2;
+    int hgap = (w - hmargin*2 - 3*m_faceW)/2;
 
     // big portraits
     QGraphicsRectItem * rectItem = m_scene->addRect( -m_faceW/2,-m_faceH/2,m_faceW,m_faceH,QPen(QColor(50,50,50)) );
-    rectItem->setPos( hgap+m_faceW/2 ,h/2);
+    rectItem->setPos( hmargin + m_faceW/2 ,h/2);
     m_currentPortrait = new QGraphicsPixmapItem(rectItem);
     m_currentPortrait->setOffset( -m_faceW/2, -m_faceH/2 );
+
     rectItem =  m_scene->addRect( -m_faceW/2,-m_faceH/2,m_faceW,m_faceH,QPen(QColor(50,50,50)) );
-    rectItem->setPos(w - (hgap+m_faceW/2),h/2);
+    rectItem->setPos( hmargin + m_faceW*3/2 + hgap ,h/2);
     m_matchPortrait = new QGraphicsPixmapItem(rectItem);
     m_matchPortrait->setOffset( -m_faceW/2, -m_faceH/2 );
 
+    rectItem =  m_scene->addRect( -m_faceW/2,-m_faceH/2,m_faceW,m_faceH,QPen(QColor(50,50,50)) );
+    rectItem->setPos( w - hmargin - m_faceW/2, h/2);
+    m_origPortrait = new QGraphicsPixmapItem(rectItem);
+    m_origPortrait->setOffset( -m_faceW/2, -m_faceH/2 );
+
     // small portraits
-    m_smallFaceH = m_vertSpace*3/4, m_smallFaceW = m_smallFaceH*2/3;
-    int smallFaceMargin = (m_vertSpace-m_smallFaceH)/2;
-    int nSmallFaces = (w - smallFaceMargin) / (m_smallFaceW+smallFaceMargin);
-    int offs = smallFaceMargin+m_smallFaceW/2;
+    m_smallFaceH = m_vertSpace*3/4, m_smallFaceW = m_smallFaceH / Bio::CROP_RATIO;
+    int nSmallFaces = (w - hmargin*2) / m_smallFaceW - 1;
+    double smallFaceGap = (double)(w-hmargin*2-m_smallFaceW) / (nSmallFaces-1) - m_smallFaceW;
     for(int i = 0; i<nSmallFaces; i++) {
         QGraphicsRectItem * smallPortrait = m_scene->addRect( -m_smallFaceW/2, -m_smallFaceH/2, m_smallFaceW, m_smallFaceH,
                                                           QPen(QColor(50,50,50)) );
-        smallPortrait->setPos(offs+i*(smallFaceMargin+m_smallFaceW),m_vertSpace/2);
+        smallPortrait->setPos(hmargin + m_smallFaceW/2 + (smallFaceGap + m_smallFaceW) * i, m_smallFaceH / 2);
         QGraphicsPixmapItem * item = new QGraphicsPixmapItem(smallPortrait);
         item->setOffset( -m_smallFaceW/2, -m_smallFaceH/2 );
         m_smallPortraits << item;
     }
 
     // text
-    QFont fnt;
+    QFont fnt("TeX Gyre Adventor");
+    fnt.setStretch(QFont::ExtraCondensed);
     fnt.setPixelSize( m_vertSpace/4 );
-    m_caption = m_scene->addText( "", fnt );
-    m_caption->setDefaultTextColor(QColor(100,100,100));
-    m_caption->setTextWidth(w*2/3);
-    setCaption("Fifteen Minutes of Biometric Fame");
 
-    fnt.setPixelSize( m_vertSpace/8 );
-    m_currentStamp = m_scene->addText("", fnt);
-    m_currentStamp->setX( m_currentPortrait->parentItem()->x() );
-    m_matchStamp = m_scene->addText("", fnt);
-    m_matchStamp->setX( m_matchPortrait->parentItem()->x() );
-    QList<QGraphicsTextItem*> lst = QList<QGraphicsTextItem*>() << m_currentStamp << m_matchStamp;
-    foreach(QGraphicsTextItem* item, lst) {
-        item->setDefaultTextColor(QColor(150,150,150));
-        item->setTextWidth( m_faceW * 3 / 2 );
-        item->setX( item->x() - item->textWidth()/2 );
-        item->setY( m_currentPortrait->parentItem()->y() + m_faceH*2/5  );
+    int textgap = hgap / 3;
+    int textwidth = (w-2*hmargin-2*textgap)/3;
+
+    for(int i=0; i<3; i++) {
+        m_text[i] = m_scene->addText( "", fnt );
+        m_text[i]->setTextWidth(textwidth);
+        m_text[i]->setPos( hmargin + (textwidth+textgap)*i, h - m_vertSpace );
+        m_text[i]->setDefaultTextColor(QColor(100,100,100));
     }
+
+    fnt.setPixelSize( m_vertSpace / 6 );
+    fnt.setStretch(QFont::Condensed);
+    fnt.setWeight(QFont::Bold);
+    fnt.setLetterSpacing(QFont::AbsoluteSpacing, 3);
+    QFontMetrics fm(fnt);
+    QGraphicsSimpleTextItem * txt = m_scene->addSimpleText("Matching History", fnt);
+    txt->setPos( hmargin, m_smallFaceH - fm.descent()); // not sure why we need to subtract descent, but it works
+    txt->setBrush(QBrush(QColor(100,100,100)));
 }
 
 void BioDisplay::setCaption(const QString &text)
 {
-    m_caption->setHtml(QString("<center>%1</center>").arg(text));
-    QSizeF tsz = m_caption->boundingRect().size();
-    // vertically center under the portrait...
-    m_caption->setPos(m_scene->width()/2 - tsz.width()/2, m_scene->height() - m_vertSpace/2 - tsz.height()/2);
+    m_text[1]->setHtml(QString("<center>%1</center>").arg(text));
 }
 
 void BioDisplay::searchAnimation()
@@ -131,14 +137,15 @@ void BioDisplay::showNoMatch()
 
 void BioDisplay::showMatch( const QString& slot, const QList<Bio::Portrait>& faces )
 {
+    m_rndPicTimer.stop();
+
     QString timeFormat = "yyyy-MM-dd hh:mm";
 
     setCaption(slot);
-    m_currentStamp->setHtml(QString("<center>%1</center>").arg(QDateTime::currentDateTime().toString((timeFormat))));
 
     Q_ASSERT(faces.size()>1);
     showPic(QPixmap::fromImage(faces[1].image));
-    m_matchStamp->setHtml(QString("<center>%1</center>").arg(faces[1].timestamp.toString(timeFormat)));
+    showPic(QPixmap::fromImage(faces.last().image), m_origPortrait);
 
     // show the rest of the slot...
     int i = 0;
@@ -146,7 +153,8 @@ void BioDisplay::showMatch( const QString& slot, const QList<Bio::Portrait>& fac
         showSmallPic(QPixmap::fromImage(face.image), i++);
     }
 
-    m_rndPicTimer.stop();
+    // text
+    //
 }
 
 
@@ -164,14 +172,16 @@ void BioDisplay::showRndPic()
     showPic( random( m_allFiles ) );
 }
 
-void BioDisplay::showPic(const QPixmap& pic)
+void BioDisplay::showPic(const QPixmap& pic, QGraphicsPixmapItem * where )
 {
-    m_matchPortrait->setPixmap(pic.scaled(m_faceW,m_faceH));
+    if (!where)
+        where = m_matchPortrait;
+    where->setPixmap(pic.scaled(m_faceW,m_faceH));
 }
 
-void BioDisplay::showPic(const QString &path)
+void BioDisplay::showPic(const QString &path, QGraphicsPixmapItem * where )
 {
-    showPic(QPixmap( path ));
+    showPic(QPixmap( path ), where);
 }
 
 bool BioDisplay::showSmallPic(const QPixmap &image, int i)
@@ -183,8 +193,7 @@ bool BioDisplay::showSmallPic(const QPixmap &image, int i)
 
 void BioDisplay::incomingFace(QImage face)
 {
-    QPixmap pic = QPixmap::fromImage( face );
-    m_currentPortrait->setPixmap( pic.scaled(m_faceW,m_faceH) );
+    showPic(QPixmap::fromImage( face ), m_currentPortrait);
     searchAnimation();
 }
 
@@ -210,7 +219,7 @@ void BioDisplay::addImagePath(QString path)
 
 void BioDisplay::textBlink()
 {
-    QString caption = m_caption->toPlainText();
+    QString caption = m_text[1]->toPlainText();
     QRegExp dots("\\.*$");
     Q_ASSERT( dots.indexIn(caption) > -1 );
     int numDots = (dots.matchedLength() + 1) % 4;

@@ -25,8 +25,8 @@ public:
     ~BioDisplay();
 
 public slots:
-    void showPic(const QString& path);
-    void showPic(const QPixmap& pic);
+    void showPic(const QPixmap& pic, QGraphicsPixmapItem * where = 0);
+    void showPic(const QString& path, QGraphicsPixmapItem * where = 0);
 
     void showRndPic();
     bool showSmallPic(const QPixmap &image, int i);
@@ -48,9 +48,8 @@ protected:
 
     QGraphicsView * m_view;
     QGraphicsScene * m_scene;
-    QGraphicsPixmapItem * m_currentPortrait;
-    QGraphicsPixmapItem * m_matchPortrait;
-    QGraphicsTextItem * m_caption, * m_currentStamp, * m_matchStamp;
+    QGraphicsPixmapItem * m_currentPortrait, * m_matchPortrait, * m_origPortrait;
+    QGraphicsTextItem * m_text[3];
     QList<QGraphicsPixmapItem*> m_smallPortraits;
     int m_faceW, m_faceH, m_vertSpace, m_smallFaceH, m_smallFaceW;
     QList<QString> m_allFiles;
