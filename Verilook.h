@@ -24,9 +24,9 @@ public:
     void setNewFacesDir(const QString& path);
 
 signals:
-    void incomingFace(QImage face);
-    void identified( QString slotName, QList<Bio::Portrait> ancestors);
-    void faceAdded(QString imgPath);
+    void incomingFace( QImage face );
+    void identified( QString slotName, QList<Bio::Portrait> ancestors, double score );
+    void faceAdded( QString imgPath );
     void noMatchFound();
 
 public slots:

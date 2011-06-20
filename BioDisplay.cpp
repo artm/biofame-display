@@ -137,7 +137,7 @@ void BioDisplay::showNoMatch()
     m_rndPicTimer.stop();
 }
 
-void BioDisplay::showMatch( const QString& slot, const QList<Bio::Portrait>& faces )
+void BioDisplay::showMatch( const QString& slot, const QList<Bio::Portrait>& faces, double score )
 {
     m_rndPicTimer.stop();
 
@@ -166,7 +166,7 @@ void BioDisplay::showMatch( const QString& slot, const QList<Bio::Portrait>& fac
     // text
     m_text[0]->setPlainText((tag + "\n\nFeeding back to internet").toUpper());
     m_text[1]->setPlainText(QString("Match: generation %1\nAdded to database: %2\nMatching Percentage: %3%")
-                            .arg( faces.length()-1 ).arg(faces[1].timestamp.toString(timeFormat)).arg(random()%100).toUpper());
+                            .arg( faces.length()-1 ).arg(faces[1].timestamp.toString(timeFormat)).arg(score/180*100,3,'f',1).toUpper());
     m_text[2]->setPlainText(QString("Source: Google Images\nSearch Tag: %1\nSearch Language: %2").arg(tag).arg(lang).toUpper());
 }
 

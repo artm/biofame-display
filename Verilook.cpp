@@ -329,7 +329,7 @@ void Verilook::scrutinize(const QImage &image)
             ancestorFaces << p;
         }
 
-        emit identified( QString(face->slot()).replace(minUnder ," "), ancestorFaces );
+        emit identified( QString(face->slot()).replace(minUnder ," "), ancestorFaces, bestScore );
     } else
         emit noMatchFound();
 

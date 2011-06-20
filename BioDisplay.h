@@ -36,7 +36,7 @@ public slots:
     void setCaptionLoading() { setCaption("Loading database..."); }
     void setCaptionLoaded() { setCaption("Database loaded"); }
 
-    void showMatch(const QString& slot, const QList<Bio::Portrait>& faces);
+    void showMatch(const QString& slot, const QList<Bio::Portrait>& faces, double score);
     void showNoMatch();
     void textBlink(); // blink ... to fake progress
 
