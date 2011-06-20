@@ -59,7 +59,7 @@ void BioDisplay::setupUI()
     m_view->fitInView( m_scene->sceneRect() );
 
     int w = width(), h = height();
-    m_faceH = h/2, m_faceW = m_faceH / Bio::CROP_RATIO;
+    m_faceH = h*19/30, m_faceW = m_faceH / Bio::CROP_RATIO;
     m_vertSpace = h/2 - m_faceH/2;
     int hmargin = (w - h*4/3)/2;
     int hgap = (w - hmargin*2 - 3*m_faceW)/2;
@@ -69,16 +69,19 @@ void BioDisplay::setupUI()
     rectItem->setPos( hmargin + m_faceW/2 ,h/2);
     m_currentPortrait = new QGraphicsPixmapItem(rectItem);
     m_currentPortrait->setOffset( -m_faceW/2, -m_faceH/2 );
+    m_currentPortrait->setFlag(QGraphicsItem::ItemStacksBehindParent);
 
     rectItem =  m_scene->addRect( -m_faceW/2,-m_faceH/2,m_faceW,m_faceH,QPen(QColor(50,50,50)) );
     rectItem->setPos( hmargin + m_faceW*3/2 + hgap ,h/2);
     m_matchPortrait = new QGraphicsPixmapItem(rectItem);
     m_matchPortrait->setOffset( -m_faceW/2, -m_faceH/2 );
+    m_matchPortrait->setFlag(QGraphicsItem::ItemStacksBehindParent);
 
     rectItem =  m_scene->addRect( -m_faceW/2,-m_faceH/2,m_faceW,m_faceH,QPen(QColor(50,50,50)) );
     rectItem->setPos( w - hmargin - m_faceW/2, h/2);
     m_origPortrait = new QGraphicsPixmapItem(rectItem);
     m_origPortrait->setOffset( -m_faceW/2, -m_faceH/2 );
+    m_origPortrait->setFlag(QGraphicsItem::ItemStacksBehindParent);
 
     // small portraits
     m_smallFaceH = m_vertSpace*3/4, m_smallFaceW = m_smallFaceH / Bio::CROP_RATIO;
@@ -90,15 +93,16 @@ void BioDisplay::setupUI()
         smallPortrait->setPos(hmargin + m_smallFaceW/2 + (smallFaceGap + m_smallFaceW) * i, m_smallFaceH / 2);
         QGraphicsPixmapItem * item = new QGraphicsPixmapItem(smallPortrait);
         item->setOffset( -m_smallFaceW/2, -m_smallFaceH/2 );
+        item->setFlag(QGraphicsItem::ItemStacksBehindParent);
         m_smallPortraits << item;
     }
 
     // text
     QFont fnt("TeX Gyre Adventor");
-    fnt.setStretch(QFont::ExtraCondensed);
-    fnt.setPixelSize( m_vertSpace/4 );
+    fnt.setStretch(QFont::Condensed);
+    fnt.setPixelSize( m_vertSpace / 6 );
 
-    int textgap = hgap / 3;
+    int textgap = hgap;
     int textwidth = (w-2*hmargin-2*textgap)/3;
 
     for(int i=0; i<3; i++) {
@@ -108,10 +112,8 @@ void BioDisplay::setupUI()
         m_text[i]->setDefaultTextColor(QColor(100,100,100));
     }
 
-    fnt.setPixelSize( m_vertSpace / 6 );
+    fnt.setPixelSize( m_vertSpace / 8 );
     fnt.setStretch(QFont::Condensed);
-    fnt.setWeight(QFont::Bold);
-    fnt.setLetterSpacing(QFont::AbsoluteSpacing, 3);
     QFontMetrics fm(fnt);
     QGraphicsSimpleTextItem * txt = m_scene->addSimpleText("Matching History", fnt);
     txt->setPos( hmargin, m_smallFaceH - fm.descent()); // not sure why we need to subtract descent, but it works
@@ -139,7 +141,15 @@ void BioDisplay::showMatch( const QString& slot, const QList<Bio::Portrait>& fac
 {
     m_rndPicTimer.stop();
 
-    QString timeFormat = "yyyy-MM-dd hh:mm";
+    QString timeFormat = "dd-MM-yyyy";
+
+    QString tag = slot;
+    QString lang = "English";
+    QRegExp tag_lang("(.*) ([^ ]*)$");
+    if (tag_lang.exactMatch(slot)) {
+        tag = tag_lang.cap(1);
+        lang = tag_lang.cap(2);
+    }
 
     setCaption(slot);
 
@@ -154,7 +164,10 @@ void BioDisplay::showMatch( const QString& slot, const QList<Bio::Portrait>& fac
     }
 
     // text
-    //
+    m_text[0]->setPlainText((tag + "\n\nFeeding back to internet").toUpper());
+    m_text[1]->setPlainText(QString("Match: generation %1\nAdded to database: %2\nMatching Percentage: %3%")
+                            .arg( faces.length()-1 ).arg(faces[1].timestamp.toString(timeFormat)).arg(random()%100).toUpper());
+    m_text[2]->setPlainText(QString("Source: Google Images\nSearch Tag: %1\nSearch Language: %2").arg(tag).arg(lang).toUpper());
 }
 
 
