@@ -12,6 +12,7 @@
 #include <QTimer>
 #include <QFileSystemWatcher>
 #include <QRegExp>
+#include <QKeyEvent>
 
 template<class X>
 X random(QList<X> lst)
@@ -55,6 +56,7 @@ void BioDisplay::setupUI()
     m_view->setScene(m_scene);
 
     showFullScreen();
+    setCursor(Qt::BlankCursor);
     m_scene->setSceneRect(0,0,width(),height());
     m_view->fitInView( m_scene->sceneRect() );
 
@@ -64,20 +66,27 @@ void BioDisplay::setupUI()
     int hmargin = (w - h*4/3)/2;
     int hgap = (w - hmargin*2 - 3*m_faceW)/2;
 
+    QColor rectColor = Qt::black, textColor = Qt::white;
+
+    m_rootItem = new QGraphicsItemGroup(0, m_scene);
+
     // big portraits
-    QGraphicsRectItem * rectItem = m_scene->addRect( -m_faceW/2,-m_faceH/2,m_faceW,m_faceH,QPen(QColor(50,50,50)) );
+    QGraphicsRectItem * rectItem = m_scene->addRect( -m_faceW/2,-m_faceH/2,m_faceW,m_faceH,QPen(rectColor) );
+    rectItem->setParentItem(m_rootItem);
     rectItem->setPos( hmargin + m_faceW/2 ,h/2);
     m_currentPortrait = new QGraphicsPixmapItem(rectItem);
     m_currentPortrait->setOffset( -m_faceW/2, -m_faceH/2 );
     m_currentPortrait->setFlag(QGraphicsItem::ItemStacksBehindParent);
 
-    rectItem =  m_scene->addRect( -m_faceW/2,-m_faceH/2,m_faceW,m_faceH,QPen(QColor(50,50,50)) );
+    rectItem =  m_scene->addRect( -m_faceW/2,-m_faceH/2,m_faceW,m_faceH,QPen(rectColor) );
+    rectItem->setParentItem(m_rootItem);
     rectItem->setPos( hmargin + m_faceW*3/2 + hgap ,h/2);
     m_matchPortrait = new QGraphicsPixmapItem(rectItem);
     m_matchPortrait->setOffset( -m_faceW/2, -m_faceH/2 );
     m_matchPortrait->setFlag(QGraphicsItem::ItemStacksBehindParent);
 
-    rectItem =  m_scene->addRect( -m_faceW/2,-m_faceH/2,m_faceW,m_faceH,QPen(QColor(50,50,50)) );
+    rectItem =  m_scene->addRect( -m_faceW/2,-m_faceH/2,m_faceW,m_faceH,QPen(rectColor) );
+    rectItem->setParentItem(m_rootItem);
     rectItem->setPos( w - hmargin - m_faceW/2, h/2);
     m_origPortrait = new QGraphicsPixmapItem(rectItem);
     m_origPortrait->setOffset( -m_faceW/2, -m_faceH/2 );
@@ -89,7 +98,8 @@ void BioDisplay::setupUI()
     double smallFaceGap = (double)(w-hmargin*2-m_smallFaceW) / (nSmallFaces-1) - m_smallFaceW;
     for(int i = 0; i<nSmallFaces; i++) {
         QGraphicsRectItem * smallPortrait = m_scene->addRect( -m_smallFaceW/2, -m_smallFaceH/2, m_smallFaceW, m_smallFaceH,
-                                                          QPen(QColor(50,50,50)) );
+                                                          QPen(rectColor) );
+        smallPortrait->setParentItem(m_rootItem);
         smallPortrait->setPos(hmargin + m_smallFaceW/2 + (smallFaceGap + m_smallFaceW) * i, m_smallFaceH / 2);
         QGraphicsPixmapItem * item = new QGraphicsPixmapItem(smallPortrait);
         item->setOffset( -m_smallFaceW/2, -m_smallFaceH/2 );
@@ -109,20 +119,38 @@ void BioDisplay::setupUI()
         m_text[i] = m_scene->addText( "", fnt );
         m_text[i]->setTextWidth(textwidth);
         m_text[i]->setPos( hmargin + (textwidth+textgap)*i, h - m_vertSpace );
-        m_text[i]->setDefaultTextColor(QColor(100,100,100));
+        m_text[i]->setDefaultTextColor(textColor);
+        m_text[i]->setParentItem(m_rootItem);
+
     }
 
     fnt.setPixelSize( m_vertSpace / 8 );
     fnt.setStretch(QFont::Condensed);
     QFontMetrics fm(fnt);
-    QGraphicsSimpleTextItem * txt = m_scene->addSimpleText("Matching History", fnt);
-    txt->setPos( hmargin, m_smallFaceH - fm.descent()); // not sure why we need to subtract descent, but it works
-    txt->setBrush(QBrush(QColor(100,100,100)));
+    m_histCaption = m_scene->addSimpleText("Matching History", fnt);
+    m_histCaption->setPos( hmargin, m_smallFaceH); // not sure why we need to subtract descent, but it works
+    m_histCaption->setBrush(QBrush(textColor));
+    m_histCaption->setParentItem(m_rootItem);
+    m_histCaption->hide();
 }
 
-void BioDisplay::setCaption(const QString &text)
+void BioDisplay::hideDisplay()
+{
+    m_rootItem->hide();
+}
+
+void BioDisplay::showDisplay()
+{
+    m_rootItem->show();
+}
+
+void BioDisplay::setCaption(const QString &text, int delay)
 {
     m_text[1]->setHtml(QString("<center>%1</center>").arg(text));
+
+    if (delay > 0) {
+        QTimer::singleShot(delay,this,SLOT(clearCaption()));
+    }
 }
 
 void BioDisplay::searchAnimation()
@@ -133,7 +161,7 @@ void BioDisplay::searchAnimation()
 
 void BioDisplay::showNoMatch()
 {
-    setCaption("No match found");
+    setCaption("No match found", 10000);
     m_rndPicTimer.stop();
 }
 
@@ -141,8 +169,9 @@ void BioDisplay::showMatch( const QString& slot, const QList<Bio::Portrait>& fac
 {
     m_rndPicTimer.stop();
 
-    QString timeFormat = "dd-MM-yyyy";
+    m_histCaption->show();
 
+    QString timeFormat = "dd-MM-yyyy";
     QString tag = slot;
     QString lang = "English";
     QRegExp tag_lang("(.*) ([^ ]*)$");
@@ -244,5 +273,22 @@ void BioDisplay::textBlink()
     caption += QString(numDots, '.');
 
     setCaption(caption);
+}
+
+void BioDisplay::clearCaption()
+{
+    setCaption("");
+}
+
+void BioDisplay::keyPressEvent(QKeyEvent * kev)
+{
+    switch (kev->key()) {
+    case Qt::Key_F:
+        if (kev->modifiers() & Qt::SHIFT)
+            emit requestFakeNoMatch();
+        else
+            emit requestFakeMatch();
+        break;
+    }
 }
 

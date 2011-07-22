@@ -27,6 +27,9 @@ BiometricThread::BiometricThread(QObject *parent)
                       SLOT(showMatch(QString, QList<Bio::Portrait>,double))) );
     Q_ASSERT( connect( m_verilook, SIGNAL(faceAdded(QString)), parent, SLOT(addImagePath(QString)) ) );
 
+    Q_ASSERT( connect(parent, SIGNAL(requestFakeMatch()), m_verilook, SLOT(fakeMatch())) );
+    Q_ASSERT( connect(parent, SIGNAL(requestFakeNoMatch()), m_verilook, SLOT(fakeNoMatch())) );
+
     QString incomingPath = m_root.filePath("incoming");
     m_incomingDir = QDir(incomingPath);
     foreach(QString p, m_incomingDir.entryList(QDir::Files)) {
@@ -90,3 +93,4 @@ void BiometricThread::loadDb(const QString& path)
         }
     }
 }
+

@@ -11,9 +11,11 @@ using namespace Bio;
 
 #include <NMatcherParams.h>
 
-const char * s_defaultPort = "5000";
-const char * s_defaultServer = "/local";
-const char * s_licenseList = "SingleComputerLicense:VLExtractor,SingleComputerLicense:VLMatcher";
+static const char * s_defaultPort = "5000";
+static const char * s_defaultServer = "/local";
+static const char * s_licenseList = "SingleComputerLicense:VLExtractor,SingleComputerLicense:VLMatcher";
+
+static QRegExp s_minUnder("[-_]");
 
 QHash< QString, int > Verilook::FaceTemplate::s_slotCounts; // how many images per slot?
 QHash< QString, QHash< int, Verilook::FaceTemplate::Ptr> > Verilook::FaceTemplate::s_slots;
@@ -59,12 +61,12 @@ Verilook::Verilook(QObject * parent)
     if ( available) {
         Q_ASSERT( isOk(NleCreate(&m_extractor), "No verilook extractor created", "Verilook extractor created") );
 
-        setQualityThreshold(1);
+        setQualityThreshold(32);
 
         Q_ASSERT( isOk(NMCreate(&m_matcher), "No verilook matcher created", "Verilook matcher created"));
         // relax matcher parameters...
 
-        NInt v = 1;
+        NInt v = 20;
         NMSetParameter( m_matcher, NM_PART_NONE, NMP_MATCHING_THRESHOLD, &v );
     } else {
         qFatal("Failed to obtain verilook license");
@@ -311,7 +313,6 @@ void Verilook::scrutinize(const QImage &image)
     Q_ASSERT( isOk(NMIdentifyEnd(m_matcher)) );
 
     if (bestScore > 0) {
-        static QRegExp minUnder("[-_]");
         FaceTemplate::Ptr face(new FaceTemplate( compressTemplate(tpl), best ));
         cropped.save( face->imgPath() );
         saveTemplate( face );
@@ -329,7 +330,7 @@ void Verilook::scrutinize(const QImage &image)
             ancestorFaces << p;
         }
 
-        emit identified( QString(face->slot()).replace(minUnder ," "), ancestorFaces, bestScore );
+        emit identified( QString(face->slot()).replace(s_minUnder ," "), ancestorFaces, bestScore );
     } else
         emit noMatchFound();
 
@@ -338,6 +339,32 @@ void Verilook::scrutinize(const QImage &image)
 
     if (tpl)
         NLTemplateFree(tpl);
+}
+
+void Verilook::fakeMatch(int len)
+{
+    if (!len) len = random() % 20 + 1;
+
+    QString tag;
+    QList< Portrait > ancestorFaces;
+    for(int i=0; i< len; i++) {
+        FaceTemplate::Ptr tpl = m_templates[ random() % m_templates.length() ];
+        if (!i)
+            tag = QString(tpl->slot()).replace(s_minUnder, " ");
+        Portrait p;
+        QImage orig(tpl->imgPath());
+        QRect face;
+        p.image = (findFace(orig,face) ? cropAroundFace(orig, face) : orig);
+        p.timestamp = QFileInfo(tpl->imgPath()).created();
+        ancestorFaces << p;
+    }
+
+    emit incomingFace( ancestorFaces[0].image );
+    if (len > 1) {
+        emit identified( tag, ancestorFaces, random() % 20 + 120 );
+    } else {
+        emit noMatchFound();
+    }
 }
 
 Verilook::FaceTemplate::FaceTemplate(const QString& imgPath, const QByteArray& data)
@@ -447,5 +474,10 @@ QStringList Verilook::FaceTemplate::ancestors() const
     if (s_slots.contains(m_slot) && s_slots[m_slot].contains(m_parentId))
         lst.append( s_slots[m_slot][m_parentId]->ancestors() );
     return lst;
+}
+
+void Verilook::fakeNoMatch()
+{
+    fakeMatch(1);
 }
 

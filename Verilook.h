@@ -37,6 +37,9 @@ public slots:
     void addDbFace(const QString& imgPath);
     void scrutinize(const QImage& image);
 
+    void fakeMatch(int len=0);
+    void fakeNoMatch();
+
 private:
     class FaceTemplate {
     public:
