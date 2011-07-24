@@ -151,7 +151,8 @@ void BioDisplay::setCaption(const QString &text, int delay)
     m_text[1]->setHtml(QString("<center>%1</center>").arg(text));
 
     if (delay > 0) {
-        QTimer::singleShot(delay,this,SLOT(clearCaption()));
+        // uncancelable, don't want to fix now
+        //QTimer::singleShot(delay,this,SLOT(clearCaption()));
     }
 }
 
@@ -164,6 +165,10 @@ void BioDisplay::searchAnimation()
 void BioDisplay::showNoMatch()
 {
     setCaption("No match found", 10000);
+    m_text[0]->hide();
+    m_text[2]->hide();
+    m_histCaption->hide();
+
     m_rndPicTimer.stop();
 }
 
@@ -185,7 +190,8 @@ void BioDisplay::showMatch( const QString& slot, const QList<Bio::Portrait>& fac
     setCaption(slot);
 
     Q_ASSERT(faces.size()>1);
-    showPic(QPixmap::fromImage(faces[1].image));
+    showPic(QPixmap::fromImage(faces[0].image), m_currentPortrait);
+    showPic(QPixmap::fromImage(faces[1].image), m_matchPortrait);
     showPic(QPixmap::fromImage(faces.last().image), m_origPortrait);
 
     // show the rest of the slot...
@@ -195,6 +201,9 @@ void BioDisplay::showMatch( const QString& slot, const QList<Bio::Portrait>& fac
     }
 
     // text
+    m_text[0]->show();
+    m_text[1]->show();
+    m_text[2]->show();
     m_text[0]->setPlainText((tag + "\n\nFeeding back to internet: 0.0%").toUpper());
     m_text[1]->setPlainText(QString("Match: generation %1\nAdded to database: %2\nMatching Percentage: %3%")
                             .arg( faces.length()-1 ).arg(faces[1].timestamp.toString(timeFormat)).arg(score/180*100,3,'f',1).toUpper());
@@ -239,6 +248,7 @@ void BioDisplay::showPic(const QPixmap& pic, QGraphicsPixmapItem * where )
 {
     if (!where)
         where = m_matchPortrait;
+    where->show();
     where->setPixmap(pic.scaled(m_faceW,m_faceH));
 }
 
@@ -257,7 +267,11 @@ bool BioDisplay::showSmallPic(const QPixmap &image, int i)
 
 void BioDisplay::incomingFace(QImage face)
 {
-    showPic(QPixmap::fromImage( face ), m_currentPortrait);
+    showPic(QPixmap::fromImage( face ), m_matchPortrait);
+
+    m_origPortrait->hide();
+    m_currentPortrait->hide();
+
     foreach(QGraphicsPixmapItem* item, m_smallPortraits) {
         item->hide();
     }

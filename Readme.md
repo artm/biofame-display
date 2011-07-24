@@ -13,6 +13,5 @@
 
 [ ] translate search terms
 
-[ ] no match - clear old text
 
 
