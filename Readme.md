@@ -11,13 +11,8 @@
     [ ] probably kill the oldest pictures / templates in Faces/new
     [ ] also for the robot
 
-[ ] "feeding to internet" animation
-    [ ] clear display after 100% + some delay
-
 [ ] translate search terms
 
-
 [ ] no match - clear old text
-[ ] make sure display is cleared on new display (in addition to timeout)
 
 

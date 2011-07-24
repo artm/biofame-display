@@ -250,6 +250,7 @@ void BioDisplay::showPic(const QString &path, QGraphicsPixmapItem * where )
 bool BioDisplay::showSmallPic(const QPixmap &image, int i)
 {
     if (i >= m_smallPortraits.size()) return false;
+    m_smallPortraits[i]->show();
     m_smallPortraits[i]->setPixmap( image.scaled(m_smallFaceW,m_smallFaceH) );
     return true;
 }
@@ -257,6 +258,10 @@ bool BioDisplay::showSmallPic(const QPixmap &image, int i)
 void BioDisplay::incomingFace(QImage face)
 {
     showPic(QPixmap::fromImage( face ), m_currentPortrait);
+    foreach(QGraphicsPixmapItem* item, m_smallPortraits) {
+        item->hide();
+    }
+
     searchAnimation();
 }
 
