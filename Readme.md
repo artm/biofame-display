@@ -13,5 +13,5 @@
 
 [ ] translate search terms
 
-
+[ ] deinterlace the result
 

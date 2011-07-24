@@ -31,6 +31,7 @@ BioDisplay::BioDisplay(QWidget *parent)
     , m_feedProgress(0.0)
     , m_feedIncrement(2.57)
 {
+    loadTags();
     setupTimers();
     setupUI();
     QApplication::processEvents();
@@ -207,7 +208,10 @@ void BioDisplay::showMatch( const QString& slot, const QList<Bio::Portrait>& fac
     m_text[0]->setPlainText((tag + "\n\nFeeding back to internet: 0.0%").toUpper());
     m_text[1]->setPlainText(QString("Match: generation %1\nAdded to database: %2\nMatching Percentage: %3%")
                             .arg( faces.length()-1 ).arg(faces[1].timestamp.toString(timeFormat)).arg(score/180*100,3,'f',1).toUpper());
-    m_text[2]->setPlainText(QString("Source: Google Images\nSearch Tag: %1\nSearch Language: %2").arg(tag).arg(lang).toUpper());
+    m_text[2]->setPlainText(QString("Source: Google Images\nSearch Tag: %1\nSearch Language: %2")
+                            .arg(translateTag(lang,tag))
+                            .arg(lang)
+                            .toUpper());
 
     m_feedProgress = 0.0;
     m_feedingTimer.start();
@@ -338,5 +342,49 @@ void BioDisplay::feedSome()
     setPercents(0, m_feedProgress);
     if (m_feedProgress > 100.0)
         m_feedingTimer.stop();
+}
+
+void BioDisplay::loadTags()
+{
+    QDir tagDir(QDir::homePath() + "/Pictures/Faces/text");
+    if (!tagDir.exists()) return;
+
+    QFile tagFile(tagDir.filePath("ALL_TEXTS.txt"));
+    if (!tagFile.exists()) return;
+
+    QTextStream text(&tagFile);
+
+    QRegExp langRe("^([A-Z]+):$"), tagRe("^\\[x\\]\t([^\t]+)(?:\t+([^\t]+))?$");
+
+    tagFile.open(QIODevice::ReadOnly);
+    QString lang;
+
+    while(!text.atEnd()) {
+        QString line = text.readLine();
+
+        if (langRe.exactMatch(line)) {
+            lang = langRe.cap(1);
+        } else if (tagRe.exactMatch(line)) {
+            QString tagEn = tagRe.cap(1);
+            QString tag;
+
+            if (lang=="ENGLISH") {
+                tag = tagEn;
+            } else {
+                tag = tagRe.cap(2);
+            }
+
+            m_tags[ QString("%1:%2").arg(lang).arg(tagEn) ] = tag;
+
+        }
+
+    }
+}
+
+QString BioDisplay::translateTag(QString lang, QString tagEn)
+{
+    QString key = QString("%1:%2").arg(lang.toUpper()).arg(tagEn);
+
+    return m_tags.value( key, tagEn );
 }
 

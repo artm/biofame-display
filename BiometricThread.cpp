@@ -50,6 +50,9 @@ void BiometricThread::onDirChanges()
     if (allJpegs.size()>0) {
         QImage incoming(m_incomingDir.filePath(allJpegs[0]));
 
+        // deinterlace
+        incoming = incoming.scaledToHeight( incoming.height()/2 );
+
         // somehow this breaks it
         // if (incoming.isNull()) return;
 

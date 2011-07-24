@@ -56,11 +56,14 @@ public slots:
 
 protected:
     void setupUI();
+    void loadTags();
     void setupTimers();
     void setupBiometricThread();
     void searchAnimation();
 
     virtual void keyPressEvent(QKeyEvent *);
+
+    QString translateTag(QString lang, QString tagEn);
 
     QGraphicsItem * m_rootItem;
 
@@ -76,6 +79,8 @@ protected:
     BiometricThread * m_bioThread;
 
     float m_feedProgress, m_feedIncrement;
+
+    QHash<QString,QString> m_tags;
 };
 
 #endif // BIODISPLAY_H
