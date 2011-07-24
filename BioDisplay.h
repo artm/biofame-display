@@ -46,9 +46,13 @@ public slots:
     void showMatch(const QString& slot, const QList<Bio::Portrait>& faces, double score);
     void showNoMatch();
     void textBlink(); // blink ... to fake progress
+    void setPercents(int id, float value);
 
     void hideDisplay();
     void showDisplay();
+
+    // update "Feeding to internet" line
+    void feedSome();
 
 protected:
     void setupUI();
@@ -68,8 +72,10 @@ protected:
     QList<QGraphicsPixmapItem*> m_smallPortraits;
     int m_faceW, m_faceH, m_vertSpace, m_smallFaceH, m_smallFaceW;
     QList<QString> m_allFiles;
-    QTimer m_rndPicTimer, m_textBlinkTimer;
-    BiometricThread * m_bioThread;    
+    QTimer m_rndPicTimer, m_textBlinkTimer, m_feedingTimer;
+    BiometricThread * m_bioThread;
+
+    float m_feedProgress, m_feedIncrement;
 };
 
 #endif // BIODISPLAY_H

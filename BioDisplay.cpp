@@ -28,6 +28,8 @@ X random(QHash<Key, X> map)
 
 BioDisplay::BioDisplay(QWidget *parent)
     : QMainWindow(parent)
+    , m_feedProgress(0.0)
+    , m_feedIncrement(2.57)
 {
     setupTimers();
     setupUI();
@@ -193,12 +195,28 @@ void BioDisplay::showMatch( const QString& slot, const QList<Bio::Portrait>& fac
     }
 
     // text
-    m_text[0]->setPlainText((tag + "\n\nFeeding back to internet").toUpper());
+    m_text[0]->setPlainText((tag + "\n\nFeeding back to internet: 0.0%").toUpper());
     m_text[1]->setPlainText(QString("Match: generation %1\nAdded to database: %2\nMatching Percentage: %3%")
                             .arg( faces.length()-1 ).arg(faces[1].timestamp.toString(timeFormat)).arg(score/180*100,3,'f',1).toUpper());
     m_text[2]->setPlainText(QString("Source: Google Images\nSearch Tag: %1\nSearch Language: %2").arg(tag).arg(lang).toUpper());
+
+    m_feedProgress = 0.0;
+    m_feedingTimer.start();
 }
 
+void BioDisplay::setPercents(int id, float value)
+{
+    QRegExp percent("[0-9.]+%");
+    QString text = m_text[id]->toPlainText();
+
+    if (! text.contains(percent))
+        return;
+
+    if (value < 100.0)
+        m_text[id]->setPlainText( text.replace(percent, QString("%1%").arg(value,3,'f',1)));
+    else
+        m_text[id]->setPlainText( text.replace(percent, "done"));
+}
 
 void BioDisplay::setupTimers()
 {
@@ -207,6 +225,9 @@ void BioDisplay::setupTimers()
 
     m_textBlinkTimer.setInterval(250);
     Q_ASSERT( connect(&m_textBlinkTimer, SIGNAL(timeout()), SLOT(textBlink())) );
+
+    m_feedingTimer.setInterval(250);
+    Q_ASSERT( connect(&m_feedingTimer, SIGNAL(timeout()), SLOT(feedSome())) );
 }
 
 void BioDisplay::showRndPic()
@@ -290,5 +311,13 @@ void BioDisplay::keyPressEvent(QKeyEvent * kev)
             emit requestFakeMatch();
         break;
     }
+}
+
+void BioDisplay::feedSome()
+{
+    m_feedProgress += m_feedIncrement;
+    setPercents(0, m_feedProgress);
+    if (m_feedProgress > 100.0)
+        m_feedingTimer.stop();
 }
 

@@ -14,8 +14,6 @@
 [ ] "feeding to internet" animation
     [ ] clear display after 100% + some delay
 
-[ ] hide the cursor
-
 [ ] translate search terms
 
 
