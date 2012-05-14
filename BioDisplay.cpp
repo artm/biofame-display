@@ -333,6 +333,12 @@ void BioDisplay::keyPressEvent(QKeyEvent * kev)
         else
             emit requestFakeMatch();
         break;
+    case Qt::Key_Escape:
+        if (isFullScreen())
+            showMaximized();
+        else
+            showFullScreen();
+        break;
     }
 }
 
