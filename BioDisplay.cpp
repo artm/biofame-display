@@ -253,7 +253,7 @@ void BioDisplay::showPic(const QPixmap& pic, QGraphicsPixmapItem * where )
     if (!where)
         where = m_matchPortrait;
     where->show();
-    where->setPixmap(pic.scaled(m_faceW,m_faceH));
+    where->setPixmap(pic.scaled(m_faceW,m_faceH, Qt::IgnoreAspectRatio, Qt::SmoothTransformation));
 }
 
 void BioDisplay::showPic(const QString &path, QGraphicsPixmapItem * where )
