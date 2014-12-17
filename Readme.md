@@ -6,12 +6,10 @@
 
 ## TODO lists
 
-[ ] daily maintainance script (on startup):
-    [ ] log rotate, compress old logs
-    [ ] probably kill the oldest pictures / templates in Faces/new
-    [ ] also for the robot
-
-[ ] translate search terms
-
-[ ] deinterlace the result
+- [ ] daily maintainance script (on startup):
+    - [ ] log rotate, compress old logs
+    - [ ] probably kill the oldest pictures / templates in Faces/new
+    - [ ] also for the robot
+- [ ] translate search terms
+- [ ] deinterlace the result
 
